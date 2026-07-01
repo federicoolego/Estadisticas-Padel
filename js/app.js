@@ -253,8 +253,25 @@ function renderKPIs(data) {
   const rn = streak(data, "PP");
   el("kpi-rp").innerHTML = rp.max + (rp.max ? ` <small>(${rp.veces})</small>` : "");
   el("kpi-rn").innerHTML = rn.max + (rn.max ? ` <small>(${rn.veces})</small>` : "");
-  el("kpi-rpa").textContent = rp.actual;
-  el("kpi-rna").textContent = rn.actual;
+
+  // Racha actual: una sola métrica. Positiva -> verde, negativa -> rojo.
+  const card = el("kpi-card-actual");
+  card.classList.remove("win", "loss");
+  let valor, tip;
+  if (rp.actual > 0) {
+    valor = rp.actual;
+    tip = `${rp.actual} ${rp.actual === 1 ? "partido" : "partidos"} sin perder`;
+    card.classList.add("win");
+  } else if (rn.actual > 0) {
+    valor = rn.actual;
+    tip = `${rn.actual} ${rn.actual === 1 ? "partido" : "partidos"} sin ganar`;
+    card.classList.add("loss");
+  } else {
+    valor = 0;
+    tip = "Sin partidos en el filtro actual";
+  }
+  el("kpi-ra").textContent = valor;
+  card.setAttribute("data-tip", tip);
 }
 
 // ---- Chart helpers ----
