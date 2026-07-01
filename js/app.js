@@ -148,6 +148,9 @@ Chart.defaults.font.family = "Inter, sans-serif";
 
 function destroyChart(k) { if (charts[k]) { charts[k].destroy(); delete charts[k]; } }
 
+// Color del punto según efectividad: rojo si <50%, verde si >=50%
+function effColor(v) { return v >= 50 ? WIN : LOSS; }
+
 function baseOpts(extra = {}) {
   return Object.assign({
     responsive: true, maintainAspectRatio: false,
@@ -180,6 +183,7 @@ function renderCharts(data) {
     (byMonth[key] = byMonth[key] || []).push(m);
   });
   const monthKeys = Object.keys(byMonth).sort();
+  const mesEff = monthKeys.map(k => +(stats(byMonth[k]).eff * 100).toFixed(1));
   destroyChart("mes");
   charts.mes = new Chart(el("chart-mes"), {
     type: "line",
@@ -187,9 +191,11 @@ function renderCharts(data) {
       labels: monthKeys.map(k => { const [y, mo] = k.split("-"); return `${MESES[+mo].slice(0, 3)} ${y.slice(2)}`; }),
       datasets: [{
         label: "Efectividad %",
-        data: monthKeys.map(k => +(stats(byMonth[k]).eff * 100).toFixed(1)),
+        data: mesEff,
         borderColor: WIN, backgroundColor: "rgba(74,222,128,0.15)",
-        fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: WIN
+        fill: true, tension: 0.35, pointRadius: 5,
+        pointBackgroundColor: mesEff.map(effColor),
+        pointBorderColor: mesEff.map(effColor)
       }]
     },
     options: baseOpts({ scales: {
@@ -223,8 +229,9 @@ function renderCharts(data) {
           { type: "bar", label: "Perdidos", data: labels.map(l => groups[l].pp),
             backgroundColor: LOSS, stack: "s", yAxisID: "y", order: 2 },
           { type: "line", label: "Efectividad %", data: eff,
-            borderColor: ACCENT, backgroundColor: ACCENT,
-            pointBackgroundColor: ACCENT, pointRadius: 4, tension: 0.35,
+            borderColor: WIN, backgroundColor: WIN,
+            pointBackgroundColor: eff.map(effColor), pointBorderColor: eff.map(effColor),
+            pointRadius: 5, tension: 0.35,
             yAxisID: "y1", order: 1 }
         ]
       },
@@ -242,8 +249,8 @@ function renderCharts(data) {
                grid: { color: GRID }, ticks: { color: TICK, precision: 0 },
                title: { display: true, text: "Partidos", color: TICK } },
           y1: { position: "right", beginAtZero: true, max: 100,
-                grid: { drawOnChartArea: false }, ticks: { color: ACCENT, callback: v => v + "%" },
-                title: { display: true, text: "Efectividad", color: ACCENT } }
+                grid: { drawOnChartArea: false }, ticks: { color: WIN, callback: v => v + "%" },
+                title: { display: true, text: "Efectividad", color: WIN } }
         }
       })
     });
@@ -286,8 +293,9 @@ function topRanking(key, canvasId, chartKey) {
         { type: "bar", label: "Perdidos", data: rows.map(r => r.pp),
           backgroundColor: LOSS, stack: "s", yAxisID: "y", order: 2 },
         { type: "line", label: "Efectividad %", data: eff,
-          borderColor: ACCENT, backgroundColor: ACCENT,
-          pointBackgroundColor: ACCENT, pointRadius: 4, tension: 0.35,
+          borderColor: WIN, backgroundColor: WIN,
+          pointBackgroundColor: eff.map(effColor), pointBorderColor: eff.map(effColor),
+          pointRadius: 5, tension: 0.35,
           yAxisID: "y1", order: 1 }
       ]
     },
@@ -310,8 +318,8 @@ function topRanking(key, canvasId, chartKey) {
              grid: { color: GRID }, ticks: { color: TICK, precision: 0 },
              title: { display: true, text: "Partidos", color: TICK } },
         y1: { position: "right", beginAtZero: true, max: 100,
-              grid: { drawOnChartArea: false }, ticks: { color: ACCENT, callback: v => v + "%" },
-              title: { display: true, text: "Efectividad", color: ACCENT } }
+              grid: { drawOnChartArea: false }, ticks: { color: WIN, callback: v => v + "%" },
+              title: { display: true, text: "Efectividad", color: WIN } }
       }
     })
   });
