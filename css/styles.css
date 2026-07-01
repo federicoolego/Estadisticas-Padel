@@ -214,10 +214,11 @@ header.hero {
 /* KPI cards */
 .kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
 }
+.kpis-main { grid-template-columns: repeat(5, 1fr); }
+.kpis-streak { grid-template-columns: repeat(4, 1fr); margin-bottom: 28px; }
 .kpi {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -350,6 +351,7 @@ footer {
 }
 
 @media (max-width: 1000px) {
+  .kpis-main, .kpis-streak { grid-template-columns: repeat(3, 1fr); }
   .filters { grid-template-columns: repeat(3, 1fr); }
   .filters .reset { grid-column: span 3; }
   .grid { grid-template-columns: 1fr; }
