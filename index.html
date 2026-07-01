@@ -25,29 +25,41 @@
 
     <section class="filters" aria-label="Filtros">
       <div class="field"><label>Compañero</label>
-        <div class="combo" id="combo-companiero" data-placeholder="Todos">
-          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Buscar compañero">
+        <div class="combo" id="combo-companiero" data-search="1">
+          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Compañero">
           <div class="combo-panel">
             <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
             <ul class="combo-list"></ul>
           </div>
         </div></div>
       <div class="field"><label>Rival</label>
-        <div class="combo" id="combo-rival" data-placeholder="Todos">
-          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Buscar rival">
+        <div class="combo" id="combo-rival" data-search="1">
+          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Rival">
           <div class="combo-panel">
             <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
             <ul class="combo-list"></ul>
           </div>
         </div></div>
-      <div class="field"><label for="f-anio">Año</label>
-        <select id="f-anio"><option value="">Todos</option></select></div>
-      <div class="field"><label for="f-mes">Mes</label>
-        <select id="f-mes"><option value="">Todos</option></select></div>
-      <div class="field"><label for="f-cancha">Cancha</label>
-        <select id="f-cancha"><option value="">Todas</option></select></div>
-      <div class="field"><label for="f-formato">Formato</label>
-        <select id="f-formato"><option value="">Todos</option></select></div>
+      <div class="field"><label>Año</label>
+        <div class="combo" id="combo-anio">
+          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Año">
+          <div class="combo-panel"><ul class="combo-list"></ul></div>
+        </div></div>
+      <div class="field"><label>Mes</label>
+        <div class="combo" id="combo-mes">
+          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Mes">
+          <div class="combo-panel"><ul class="combo-list"></ul></div>
+        </div></div>
+      <div class="field"><label>Cancha</label>
+        <div class="combo" id="combo-cancha">
+          <input type="text" class="combo-input" readonly placeholder="Todas" aria-label="Cancha">
+          <div class="combo-panel"><ul class="combo-list"></ul></div>
+        </div></div>
+      <div class="field"><label>Formato</label>
+        <div class="combo" id="combo-formato">
+          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Formato">
+          <div class="combo-panel"><ul class="combo-list"></ul></div>
+        </div></div>
       <button class="reset" id="reset">Limpiar filtros</button>
     </section>
 
@@ -70,7 +82,7 @@
         <div class="chart-box"><canvas id="chart-cancha"></canvas></div></div>
       <div class="card"><h3>Top 5 compañeros · más partidos jugados</h3>
         <div class="chart-box tall"><canvas id="chart-comp"></canvas></div></div>
-      <div class="card"><h3>Top 5 rivales · parejas más enfrentadas</h3>
+      <div class="card"><h3>Top 5 rivales · más partidos jugados</h3>
         <div class="chart-box tall"><canvas id="chart-rival"></canvas></div></div>
     </section>
 
