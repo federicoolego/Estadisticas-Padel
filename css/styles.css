@@ -196,6 +196,7 @@ header.hero {
 }
 
 /* Tabla de detalle */
+.table-card { margin-top: 20px; }
 .table-card h3 .count {
   font-family: var(--font-body);
   font-size: 11px;
