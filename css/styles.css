@@ -218,7 +218,7 @@ header.hero {
   margin-bottom: 16px;
 }
 .kpis-main { grid-template-columns: repeat(5, 1fr); }
-.kpis-streak { grid-template-columns: repeat(4, 1fr); margin-bottom: 28px; }
+.kpis-streak { grid-template-columns: repeat(3, 1fr); margin-bottom: 28px; }
 .kpi {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -227,6 +227,33 @@ header.hero {
   position: relative;
   overflow: hidden;
 }
+/* tarjeta con tooltip: necesita overflow visible */
+#kpi-card-actual { overflow: visible; cursor: default; }
+#kpi-card-actual[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s, transform .15s;
+  z-index: 20;
+}
+#kpi-card-actual:hover[data-tip]::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+#kpi-card-actual.win::before { background: var(--win); }
+#kpi-card-actual.loss::before { background: var(--loss); }
 .kpi::before {
   content: "";
   position: absolute;
