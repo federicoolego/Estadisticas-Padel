@@ -62,9 +62,24 @@
         <div class="chart-box tall"><canvas id="chart-rival"></canvas></div></div>
     </section>
 
+    <section class="card full table-card">
+      <h3>Detalle de partidos <span class="count" id="tabla-count"></span></h3>
+      <div class="table-scroll">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>#</th><th>Fecha</th><th>Formato</th><th>Compañero</th>
+              <th>VS</th><th>Rivales</th><th>Resultado</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body"></tbody>
+        </table>
+      </div>
+    </section>
+
     <footer>
-      <span><code>Estadisticas de Padel</code></span>
-      <span><code>Federico Olego</code></span>
+      <span>Fuente de datos: <code>data/partidos.json</code></span>
+      <span>Pádel Stats · construido con Chart.js</span>
     </footer>
   </div>
 
