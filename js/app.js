@@ -221,13 +221,14 @@ function renderKPIs(data) {
 
 // ---- Chart helpers ----
 const GRID = "#2a313c", TICK = "#8b949e", WIN = "#4ade80", LOSS = "#f87171", ACCENT = "#2563eb";
+const WIN_DARK = "#15803d", LOSS_DARK = "#b91c1c";
 Chart.defaults.color = TICK;
 Chart.defaults.font.family = "Inter, sans-serif";
 
 function destroyChart(k) { if (charts[k]) { charts[k].destroy(); delete charts[k]; } }
 
-// Color del punto según efectividad: rojo si <50%, verde si >=50%
-function effColor(v) { return v >= 50 ? WIN : LOSS; }
+// Color del punto según efectividad: rojo si <50%, verde si >=50% (tonos oscuros)
+function effColor(v) { return v >= 50 ? WIN_DARK : LOSS_DARK; }
 
 function baseOpts(extra = {}) {
   return Object.assign({
@@ -270,7 +271,7 @@ function renderCharts(data) {
       datasets: [{
         label: "Efectividad %",
         data: mesEff,
-        borderColor: WIN, backgroundColor: "rgba(74,222,128,0.15)",
+        borderColor: WIN_DARK, backgroundColor: "rgba(21,128,61,0.15)",
         fill: true, tension: 0.35, pointRadius: 5,
         pointBackgroundColor: mesEff.map(effColor),
         pointBorderColor: mesEff.map(effColor)
@@ -307,7 +308,7 @@ function renderCharts(data) {
           { type: "bar", label: "Perdidos", data: labels.map(l => groups[l].pp),
             backgroundColor: LOSS, stack: "s", yAxisID: "y", order: 2 },
           { type: "line", label: "Efectividad %", data: eff,
-            borderColor: WIN, backgroundColor: WIN,
+            borderColor: WIN_DARK, backgroundColor: WIN_DARK,
             pointBackgroundColor: eff.map(effColor), pointBorderColor: eff.map(effColor),
             pointRadius: 5, tension: 0.35,
             yAxisID: "y1", order: 1 }
@@ -327,8 +328,8 @@ function renderCharts(data) {
                grid: { color: GRID }, ticks: { color: TICK, precision: 0 },
                title: { display: true, text: "Partidos", color: TICK } },
           y1: { position: "right", beginAtZero: true, max: 100,
-                grid: { drawOnChartArea: false }, ticks: { color: WIN, callback: v => v + "%" },
-                title: { display: true, text: "Efectividad", color: WIN } }
+                grid: { drawOnChartArea: false }, ticks: { color: WIN_DARK, callback: v => v + "%" },
+                title: { display: true, text: "Efectividad", color: WIN_DARK } }
         }
       })
     });
@@ -373,7 +374,7 @@ function topRanking(key, canvasId, chartKey) {
         { type: "bar", label: "Perdidos", data: rows.map(r => r.pp),
           backgroundColor: LOSS, stack: "s", yAxisID: "y", order: 2 },
         { type: "line", label: "Efectividad %", data: eff,
-          borderColor: WIN, backgroundColor: WIN,
+          borderColor: WIN_DARK, backgroundColor: WIN_DARK,
           pointBackgroundColor: eff.map(effColor), pointBorderColor: eff.map(effColor),
           pointRadius: 5, tension: 0.35,
           yAxisID: "y1", order: 1 }
@@ -398,8 +399,8 @@ function topRanking(key, canvasId, chartKey) {
              grid: { color: GRID }, ticks: { color: TICK, precision: 0 },
              title: { display: true, text: "Partidos", color: TICK } },
         y1: { position: "right", beginAtZero: true, max: 100,
-              grid: { drawOnChartArea: false }, ticks: { color: WIN, callback: v => v + "%" },
-              title: { display: true, text: "Efectividad", color: WIN } }
+              grid: { drawOnChartArea: false }, ticks: { color: WIN_DARK, callback: v => v + "%" },
+              title: { display: true, text: "Efectividad", color: WIN_DARK } }
       }
     })
   });
