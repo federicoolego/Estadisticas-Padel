@@ -55,6 +55,7 @@ header.hero {
 }
 
 .hero .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.hero .updated { color: var(--muted); font-size: 12px; margin-top: 8px; opacity: 0.85; }
 
 .record-badge {
   font-family: var(--font-num);
@@ -213,7 +214,7 @@ header.hero {
 /* KPI cards */
 .kpis {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
   margin-bottom: 28px;
 }
@@ -349,7 +350,6 @@ footer {
 }
 
 @media (max-width: 1000px) {
-  .kpis { grid-template-columns: repeat(2, 1fr); }
   .filters { grid-template-columns: repeat(3, 1fr); }
   .filters .reset { grid-column: span 3; }
   .grid { grid-template-columns: 1fr; }
