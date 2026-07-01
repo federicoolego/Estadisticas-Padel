@@ -78,6 +78,30 @@ function render() {
   renderKPIs(data);
   renderRecord(data);
   renderCharts(data);
+  renderTable(data);
+}
+
+function renderTable(data) {
+  const tbody = el("tabla-body");
+  const rows = [...data].sort((a, b) => a.id - b.id);
+  el("tabla-count").textContent = `${rows.length} partido${rows.length === 1 ? "" : "s"}`;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No hay partidos con estos filtros.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(m => {
+    const win = m.resultado === "PG";
+    const [y, mo, d] = m.fecha.split("-");
+    return `<tr>
+      <td class="c-num">${m.id}</td>
+      <td>${d}/${mo}/${y}</td>
+      <td>${m.formato || "—"}</td>
+      <td>${m.companiero || "—"}</td>
+      <td class="c-vs">🆚</td>
+      <td>${m.rivales || "—"}</td>
+      <td class="c-res"><span class="badge ${win ? "b-win" : "b-loss"}">${win ? "✅ PG" : "❌ PP"}</span></td>
+    </tr>`;
+  }).join("");
 }
 
 function stats(list) {
@@ -105,7 +129,7 @@ function renderKPIs(data) {
 }
 
 // ---- Chart helpers ----
-const GRID = "#2a313c", TICK = "#8b949e", WIN = "#4ade80", LOSS = "#f87171", ACCENT = "#38bdf8";
+const GRID = "#2a313c", TICK = "#8b949e", WIN = "#4ade80", LOSS = "#f87171", ACCENT = "#2563eb";
 Chart.defaults.color = TICK;
 Chart.defaults.font.family = "Inter, sans-serif";
 
@@ -237,14 +261,21 @@ function topRanking(key, canvasId, chartKey) {
       a.name.localeCompare(b.name, "es"))
     .slice(0, 5);
 
+  const eff = rows.map(r => r.pj ? +((r.pg / r.pj) * 100).toFixed(1) : 0);
+
   destroyChart(chartKey);
   charts[chartKey] = new Chart(el(canvasId), {
-    type: "bar",
     data: {
       labels: rows.map(r => r.name),
       datasets: [
-        { label: "Ganados", data: rows.map(r => r.pg), backgroundColor: WIN, stack: "s" },
-        { label: "Perdidos", data: rows.map(r => r.pp), backgroundColor: LOSS, stack: "s" }
+        { type: "bar", label: "Ganados", data: rows.map(r => r.pg),
+          backgroundColor: WIN, stack: "s", xAxisID: "x", order: 2 },
+        { type: "bar", label: "Perdidos", data: rows.map(r => r.pp),
+          backgroundColor: LOSS, stack: "s", xAxisID: "x", order: 2 },
+        { type: "line", label: "Efectividad %", data: eff,
+          borderColor: ACCENT, backgroundColor: ACCENT,
+          pointBackgroundColor: ACCENT, pointRadius: 4, tension: 0.35,
+          xAxisID: "x1", order: 1 }
       ]
     },
     options: baseOpts({
@@ -252,15 +283,22 @@ function topRanking(key, canvasId, chartKey) {
       plugins: {
         legend: { labels: { boxWidth: 12, padding: 14 } },
         tooltip: { callbacks: {
-          label: c => `${c.dataset.label}: ${c.parsed.x}`,
+          label: c => c.dataset.type === "line"
+            ? `Efectividad: ${c.parsed.x}%`
+            : `${c.dataset.label}: ${c.parsed.x}`,
           footer: items => {
             const r = rows[items[0].dataIndex];
-            return `Total: ${r.pj} · Efec: ${((r.pg / r.pj) * 100).toFixed(0)}%`;
+            return `Total: ${r.pj}`;
           }
         } }
       },
       scales: {
-        x: { stacked: true, grid: { color: GRID }, ticks: { color: TICK, precision: 0 }, beginAtZero: true },
+        x: { stacked: true, position: "bottom", beginAtZero: true,
+             grid: { color: GRID }, ticks: { color: TICK, precision: 0 },
+             title: { display: true, text: "Partidos", color: TICK } },
+        x1: { position: "top", beginAtZero: true, max: 100,
+              grid: { drawOnChartArea: false }, ticks: { color: ACCENT, callback: v => v + "%" },
+              title: { display: true, text: "Efectividad", color: ACCENT } },
         y: { stacked: true, grid: { color: GRID }, ticks: { color: TICK } }
       }
     })
