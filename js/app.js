@@ -30,11 +30,24 @@ function uniqueSorted(key) {
 
 function buildFilterOptions() {
   fillSelect("f-companiero", uniqueSorted("companiero"));
-  fillSelect("f-rival", uniqueSorted("rivales"));
+  fillSelect("f-rival", rivalPlayers());
   fillSelect("f-anio", uniqueSorted("anio"));
   fillSelect("f-mes", uniqueSorted("mes").map(n => [n, MESES[n]]));
   fillSelect("f-cancha", uniqueSorted("cancha"));
   fillSelect("f-formato", uniqueSorted("formato"));
+}
+
+// Divide "A - B" en jugadores individuales
+function splitRivals(str) {
+  if (!str) return [];
+  return str.split(" - ").map(s => s.trim()).filter(Boolean);
+}
+
+// Lista única de personas rivales, ordenada alfabéticamente
+function rivalPlayers() {
+  const set = new Set();
+  ALL.forEach(m => splitRivals(m.rivales).forEach(p => set.add(p)));
+  return [...set].sort((a, b) => a.localeCompare(b, "es"));
 }
 
 function fillSelect(id, items) {
@@ -65,7 +78,7 @@ function bindFilters() {
 function applyFilters() {
   return ALL.filter(m =>
     (!filters.companiero || m.companiero === filters.companiero) &&
-    (!filters.rival || m.rivales === filters.rival) &&
+    (!filters.rival || splitRivals(m.rivales).includes(filters.rival)) &&
     (!filters.anio || String(m.anio) === filters.anio) &&
     (!filters.mes || String(m.mes) === filters.mes) &&
     (!filters.cancha || m.cancha === filters.cancha) &&
@@ -269,23 +282,22 @@ function topRanking(key, canvasId, chartKey) {
       labels: rows.map(r => r.name),
       datasets: [
         { type: "bar", label: "Ganados", data: rows.map(r => r.pg),
-          backgroundColor: WIN, stack: "s", xAxisID: "x", order: 2 },
+          backgroundColor: WIN, stack: "s", yAxisID: "y", order: 2 },
         { type: "bar", label: "Perdidos", data: rows.map(r => r.pp),
-          backgroundColor: LOSS, stack: "s", xAxisID: "x", order: 2 },
+          backgroundColor: LOSS, stack: "s", yAxisID: "y", order: 2 },
         { type: "line", label: "Efectividad %", data: eff,
           borderColor: ACCENT, backgroundColor: ACCENT,
           pointBackgroundColor: ACCENT, pointRadius: 4, tension: 0.35,
-          xAxisID: "x1", order: 1 }
+          yAxisID: "y1", order: 1 }
       ]
     },
     options: baseOpts({
-      indexAxis: "y",
       plugins: {
         legend: { labels: { boxWidth: 12, padding: 14 } },
         tooltip: { callbacks: {
           label: c => c.dataset.type === "line"
-            ? `Efectividad: ${c.parsed.x}%`
-            : `${c.dataset.label}: ${c.parsed.x}`,
+            ? `Efectividad: ${c.parsed.y}%`
+            : `${c.dataset.label}: ${c.parsed.y}`,
           footer: items => {
             const r = rows[items[0].dataIndex];
             return `Total: ${r.pj}`;
@@ -293,13 +305,13 @@ function topRanking(key, canvasId, chartKey) {
         } }
       },
       scales: {
-        x: { stacked: true, position: "bottom", beginAtZero: true,
+        x: { stacked: true, grid: { color: GRID }, ticks: { color: TICK } },
+        y: { stacked: true, position: "left", beginAtZero: true,
              grid: { color: GRID }, ticks: { color: TICK, precision: 0 },
              title: { display: true, text: "Partidos", color: TICK } },
-        x1: { position: "top", beginAtZero: true, max: 100,
+        y1: { position: "right", beginAtZero: true, max: 100,
               grid: { drawOnChartArea: false }, ticks: { color: ACCENT, callback: v => v + "%" },
-              title: { display: true, text: "Efectividad", color: ACCENT } },
-        y: { stacked: true, grid: { color: GRID }, ticks: { color: TICK } }
+              title: { display: true, text: "Efectividad", color: ACCENT } }
       }
     })
   });
