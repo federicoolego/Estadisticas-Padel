@@ -317,10 +317,15 @@ function renderCharts(data) {
       options: baseOpts({
         plugins: {
           legend: { labels: { boxWidth: 12, padding: 14 } },
-          tooltip: { callbacks: { label: c =>
-            c.dataset.type === "line"
+          tooltip: { callbacks: {
+            label: c => c.dataset.type === "line"
               ? `Efectividad: ${c.parsed.y}%`
-              : `${c.dataset.label}: ${c.parsed.y}` } }
+              : `${c.dataset.label}: ${c.parsed.y}`,
+            footer: items => {
+              const g = groups[labels[items[0].dataIndex]];
+              return `Total: ${g.pg + g.pp}`;
+            }
+          } }
         },
         scales: {
           x: { stacked: true, grid: { color: GRID }, ticks: { color: TICK } },
