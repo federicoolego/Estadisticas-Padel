@@ -404,3 +404,28 @@ footer {
   .filters .reset { grid-column: span 1; }
   .hero h1 { font-size: 30px; }
 }
+
+/* ---- WhatsApp floating share button ---- */
+.wa-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: none;
+  background: #25d366;
+  box-shadow: 0 6px 18px rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 9999;
+  touch-action: none;
+  transition: transform .12s ease, box-shadow .12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.wa-fab:hover { transform: scale(1.06); }
+.wa-fab:active { transform: scale(.94); }
+.wa-fab.dragging { transition: none; box-shadow: 0 10px 26px rgba(0,0,0,.6); cursor: grabbing; }
+.wa-fab.busy { opacity: .6; pointer-events: none; }
