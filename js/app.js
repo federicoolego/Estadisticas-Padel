@@ -20,7 +20,16 @@ async function init() {
   }
   buildFilterOptions();
   bindFilters();
+  renderLastUpdate();
   render();
+}
+
+// Fecha del último partido cargado (por #), independiente de los filtros
+function renderLastUpdate() {
+  if (!ALL.length) return;
+  const last = [...ALL].sort((a, b) => a.id - b.id)[ALL.length - 1];
+  const [y, mo, d] = last.fecha.split("-");
+  el("last-update").textContent = `Última actualización: ${d}/${mo}/${y}`;
 }
 
 function uniqueSorted(key) {
@@ -204,6 +213,28 @@ function stats(list) {
   return { pj, pg, pp, dif, eff };
 }
 
+// Rachas sobre la lista filtrada, ordenada cronológicamente por # (id).
+// target = "PG" (racha positiva) o "PP" (negativa).
+// Devuelve { max, veces, actual }: mejor racha, cuántas veces se alcanzó ese máximo, y la racha vigente al final.
+function streak(list, target) {
+  const seq = [...list].sort((a, b) => a.id - b.id);
+  let max = 0, veces = 0, run = 0, actual = 0;
+  seq.forEach(m => {
+    if (m.resultado === target) {
+      run++;
+      if (run > max) { max = run; veces = 1; }
+      else if (run === max && run > 0) veces++;
+    } else {
+      run = 0;
+    }
+  });
+  // racha actual: contar desde el final mientras coincida
+  for (let i = seq.length - 1; i >= 0; i--) {
+    if (seq[i].resultado === target) actual++; else break;
+  }
+  return { max, veces, actual };
+}
+
 function renderRecord(data) {
   const s = stats(data);
   el("record").innerHTML =
@@ -217,6 +248,13 @@ function renderKPIs(data) {
   el("kpi-pp").textContent = s.pp;
   el("kpi-dif").textContent = (s.dif > 0 ? "+" : "") + s.dif;
   el("kpi-eff").innerHTML = (s.eff * 100).toFixed(1) + "<small>%</small>";
+
+  const rp = streak(data, "PG");
+  const rn = streak(data, "PP");
+  el("kpi-rp").innerHTML = rp.max + (rp.max ? ` <small>(${rp.veces})</small>` : "");
+  el("kpi-rn").innerHTML = rn.max + (rn.max ? ` <small>(${rn.veces})</small>` : "");
+  el("kpi-rpa").textContent = rp.actual;
+  el("kpi-rna").textContent = rn.actual;
 }
 
 // ---- Chart helpers ----
@@ -242,70 +280,35 @@ function baseOpts(extra = {}) {
 }
 
 function renderCharts(data) {
-  // 1. Win/Loss doughnut
-  const s = stats(data);
-  destroyChart("wl");
-  charts.wl = new Chart(el("chart-wl"), {
-    type: "doughnut",
-    data: {
-      labels: ["Ganados", "Perdidos"],
-      datasets: [{ data: [s.pg, s.pp], backgroundColor: [WIN, LOSS], borderColor: "#161b22", borderWidth: 3 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, cutout: "62%",
-      plugins: { legend: { position: "bottom", labels: { boxWidth: 12, padding: 14 } } } }
-  });
-
-  // 2. Efectividad por mes (línea, orden cronológico anio-mes)
-  const byMonth = {};
-  data.forEach(m => {
-    const key = `${m.anio}-${String(m.mes).padStart(2, "0")}`;
-    (byMonth[key] = byMonth[key] || []).push(m);
-  });
-  const monthKeys = Object.keys(byMonth).sort();
-  const mesEff = monthKeys.map(k => +(stats(byMonth[k]).eff * 100).toFixed(1));
-  destroyChart("mes");
-  charts.mes = new Chart(el("chart-mes"), {
-    type: "line",
-    data: {
-      labels: monthKeys.map(k => { const [y, mo] = k.split("-"); return `${MESES[+mo].slice(0, 3)} ${y.slice(2)}`; }),
-      datasets: [{
-        label: "Efectividad %",
-        data: mesEff,
-        borderColor: WIN_DARK, backgroundColor: "rgba(21,128,61,0.15)",
-        fill: true, tension: 0.35, pointRadius: 5,
-        pointBackgroundColor: mesEff.map(effColor),
-        pointBorderColor: mesEff.map(effColor)
-      }]
-    },
-    options: baseOpts({ scales: {
-      x: { grid: { color: GRID }, ticks: { color: TICK } },
-      y: { grid: { color: GRID }, ticks: { color: TICK, callback: v => v + "%" }, beginAtZero: true, max: 100 }
-    }, plugins: { legend: { display: false } } })
-  });
-
-  // 3. Combo por formato / cancha: barras apiladas PG/PP (total = alto de barra) + línea de efectividad
-  const comboBar = (key, canvasId, chartKey) => {
+  // comboBar genérico: barras apiladas PG/PP (total = alto) + línea de efectividad.
+  // opts.groupBy(m) -> clave; opts.labelOf(key) -> etiqueta visible; opts.order: "cronologico" | "pj"
+  const comboBar = (canvasId, chartKey, opts) => {
     const groups = {};
     data.forEach(m => {
-      const g = m[key] || "—";
+      const g = opts.groupBy(m);
+      if (g == null || g === "") return;
       groups[g] = groups[g] || { pg: 0, pp: 0 };
       groups[g][m.resultado === "PG" ? "pg" : "pp"]++;
     });
-    // orden por total de partidos (PJ) desc
-    const labels = Object.keys(groups).sort((a, b) =>
-      (groups[b].pg + groups[b].pp) - (groups[a].pg + groups[a].pp));
-    const eff = labels.map(l => {
-      const pj = groups[l].pg + groups[l].pp;
-      return pj ? +((groups[l].pg / pj) * 100).toFixed(1) : 0;
+    let keys = Object.keys(groups);
+    if (opts.order === "cronologico") {
+      keys.sort();
+    } else {
+      keys.sort((a, b) => (groups[b].pg + groups[b].pp) - (groups[a].pg + groups[a].pp));
+    }
+    const labels = keys.map(opts.labelOf || (k => k));
+    const eff = keys.map(k => {
+      const pj = groups[k].pg + groups[k].pp;
+      return pj ? +((groups[k].pg / pj) * 100).toFixed(1) : 0;
     });
     destroyChart(chartKey);
     charts[chartKey] = new Chart(el(canvasId), {
       data: {
         labels,
         datasets: [
-          { type: "bar", label: "Ganados", data: labels.map(l => groups[l].pg),
+          { type: "bar", label: "Ganados", data: keys.map(k => groups[k].pg),
             backgroundColor: WIN, stack: "s", yAxisID: "y", order: 2 },
-          { type: "bar", label: "Perdidos", data: labels.map(l => groups[l].pp),
+          { type: "bar", label: "Perdidos", data: keys.map(k => groups[k].pp),
             backgroundColor: LOSS, stack: "s", yAxisID: "y", order: 2 },
           { type: "line", label: "Efectividad %", data: eff,
             borderColor: WIN_DARK, backgroundColor: WIN_DARK,
@@ -322,7 +325,7 @@ function renderCharts(data) {
               ? `Efectividad: ${c.parsed.y}%`
               : `${c.dataset.label}: ${c.parsed.y}`,
             footer: items => {
-              const g = groups[labels[items[0].dataIndex]];
+              const g = groups[keys[items[0].dataIndex]];
               return `Total: ${g.pg + g.pp}`;
             }
           } }
@@ -339,10 +342,20 @@ function renderCharts(data) {
       })
     });
   };
-  comboBar("formato", "chart-formato", "formato");
-  comboBar("cancha", "chart-cancha", "cancha");
 
-  // 4. TOP 5 compañeros y rivales: orden PJ → PG → alfabético
+  comboBar("chart-anio", "anio", {
+    groupBy: m => String(m.anio),
+    order: "cronologico"
+  });
+  comboBar("chart-mes", "mes", {
+    groupBy: m => `${m.anio}-${String(m.mes).padStart(2, "0")}`,
+    labelOf: k => { const [y, mo] = k.split("-"); return `${MESES[+mo].slice(0, 3)} ${y.slice(2)}`; },
+    order: "cronologico"
+  });
+  comboBar("chart-formato", "formato", { groupBy: m => m.formato, order: "pj" });
+  comboBar("chart-cancha", "cancha", { groupBy: m => m.cancha, order: "pj" });
+
+  // TOP 5 compañeros y rivales: orden PJ → PG → alfabético
   topRanking("companiero", "chart-comp", "comp");
   topRanking("rivales", "chart-rival", "rival");
 }
