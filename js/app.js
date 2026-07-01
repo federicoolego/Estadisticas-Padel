@@ -29,13 +29,71 @@ function uniqueSorted(key) {
 }
 
 function buildFilterOptions() {
-  fillSelect("f-companiero", uniqueSorted("companiero"));
-  fillSelect("f-rival", rivalPlayers());
+  setupCombo("combo-companiero", uniqueSorted("companiero"), "companiero", "Todos");
+  setupCombo("combo-rival", rivalPlayers(), "rival", "Todos");
   fillSelect("f-anio", uniqueSorted("anio"));
   fillSelect("f-mes", uniqueSorted("mes").map(n => [n, MESES[n]]));
   fillSelect("f-cancha", uniqueSorted("cancha"));
   fillSelect("f-formato", uniqueSorted("formato"));
 }
+
+// ---- Combobox con búsqueda (compañero / rival) ----
+const combos = {};
+
+function setupCombo(comboId, items, filterKey, placeholder) {
+  const root = el(comboId);
+  const input = root.querySelector(".combo-input");
+  const search = root.querySelector(".combo-search");
+  const list = root.querySelector(".combo-list");
+  const all = ["", ...items]; // "" = opción "Todos"
+
+  combos[comboId] = { root, input, search, list, filterKey, placeholder, all };
+
+  input.addEventListener("click", () => toggleCombo(comboId));
+  search.addEventListener("input", () => renderComboList(comboId, search.value));
+  renderComboList(comboId, "");
+}
+
+function renderComboList(comboId, q) {
+  const c = combos[comboId];
+  const query = q.trim().toLowerCase();
+  const filtered = c.all.filter(v =>
+    v === "" ? query === "" : v.toLowerCase().includes(query));
+  c.list.innerHTML = filtered.map(v => {
+    const label = v === "" ? c.placeholder : v;
+    const sel = filters[c.filterKey] === v ? " selected" : "";
+    return `<li class="combo-opt${sel}" data-val="${v.replace(/"/g, "&quot;")}">${label}</li>`;
+  }).join("") || '<li class="combo-empty">Sin resultados</li>';
+
+  c.list.querySelectorAll(".combo-opt").forEach(li => {
+    li.addEventListener("click", () => {
+      const val = li.getAttribute("data-val");
+      filters[c.filterKey] = val;
+      c.input.value = val === "" ? "" : val;
+      c.input.placeholder = c.placeholder;
+      closeCombo(comboId);
+      render();
+    });
+  });
+}
+
+function toggleCombo(comboId) {
+  const c = combos[comboId];
+  const open = c.root.classList.contains("open");
+  closeAllCombos();
+  if (!open) {
+    c.root.classList.add("open");
+    c.search.value = "";
+    renderComboList(comboId, "");
+    setTimeout(() => c.search.focus(), 0);
+  }
+}
+function closeCombo(comboId) { combos[comboId].root.classList.remove("open"); }
+function closeAllCombos() { Object.keys(combos).forEach(closeCombo); }
+
+document.addEventListener("click", e => {
+  if (!e.target.closest(".combo")) closeAllCombos();
+});
 
 // Divide "A - B" en jugadores individuales
 function splitRivals(str) {
@@ -62,8 +120,7 @@ function fillSelect(id, items) {
 
 function bindFilters() {
   const map = {
-    "f-companiero": "companiero", "f-rival": "rival", "f-anio": "anio",
-    "f-mes": "mes", "f-cancha": "cancha", "f-formato": "formato"
+    "f-anio": "anio", "f-mes": "mes", "f-cancha": "cancha", "f-formato": "formato"
   };
   Object.entries(map).forEach(([id, key]) => {
     el(id).addEventListener("change", e => { filters[key] = e.target.value; render(); });
@@ -71,6 +128,11 @@ function bindFilters() {
   el("reset").addEventListener("click", () => {
     Object.keys(filters).forEach(k => filters[k] = "");
     document.querySelectorAll(".filters select").forEach(s => s.value = "");
+    Object.keys(combos).forEach(id => {
+      combos[id].input.value = "";
+      combos[id].search.value = "";
+    });
+    closeAllCombos();
     render();
   });
 }
