@@ -24,10 +24,22 @@
     </header>
 
     <section class="filters" aria-label="Filtros">
-      <div class="field"><label for="f-companiero">Compañero</label>
-        <select id="f-companiero"><option value="">Todos</option></select></div>
-      <div class="field"><label for="f-rival">Rival</label>
-        <select id="f-rival"><option value="">Todos</option></select></div>
+      <div class="field"><label>Compañero</label>
+        <div class="combo" id="combo-companiero" data-placeholder="Todos">
+          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Buscar compañero">
+          <div class="combo-panel">
+            <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
+            <ul class="combo-list"></ul>
+          </div>
+        </div></div>
+      <div class="field"><label>Rival</label>
+        <div class="combo" id="combo-rival" data-placeholder="Todos">
+          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Buscar rival">
+          <div class="combo-panel">
+            <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
+            <ul class="combo-list"></ul>
+          </div>
+        </div></div>
       <div class="field"><label for="f-anio">Año</label>
         <select id="f-anio"><option value="">Todos</option></select></div>
       <div class="field"><label for="f-mes">Mes</label>
