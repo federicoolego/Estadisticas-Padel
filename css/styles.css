@@ -158,6 +158,9 @@ header.hero {
   overflow-y: auto;
 }
 .combo-opt {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   padding: 8px 10px;
   border-radius: 6px;
   font-size: 13px;
@@ -166,8 +169,29 @@ header.hero {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.combo-opt .chk {
+  flex: 0 0 auto;
+  width: 15px; height: 15px;
+  border: 1.5px solid var(--muted);
+  border-radius: 4px;
+  position: relative;
+  transition: all .12s;
+}
+.combo-opt .chk.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.combo-opt .chk.on::after {
+  content: "";
+  position: absolute;
+  left: 4px; top: 1px;
+  width: 4px; height: 8px;
+  border: solid #0d1117;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
 .combo-opt:hover { background: var(--border); }
-.combo-opt.selected { color: var(--accent); font-weight: 600; }
+.combo-all { border-bottom: 1px solid var(--border); border-radius: 0; margin-bottom: 2px; }
 .combo-empty { padding: 10px; color: var(--muted); font-size: 13px; }
 
 .filters .reset {
