@@ -5,7 +5,7 @@ const MESES = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
 let ALL = [];
 let charts = {};
 
-const filters = { companiero: "", rival: "", anio: "", mes: "", cancha: "", formato: "" };
+const filters = { companiero: [], rival: [], anio: [], mes: [], cancha: [], formato: [] };
 
 const el = (id) => document.getElementById(id);
 
@@ -29,15 +29,16 @@ function uniqueSorted(key) {
 }
 
 function buildFilterOptions() {
-  setupCombo("combo-companiero", uniqueSorted("companiero"), "companiero", "Todos");
-  setupCombo("combo-rival", rivalPlayers(), "rival", "Todos");
-  fillSelect("f-anio", uniqueSorted("anio"));
-  fillSelect("f-mes", uniqueSorted("mes").map(n => [n, MESES[n]]));
-  fillSelect("f-cancha", uniqueSorted("cancha"));
-  fillSelect("f-formato", uniqueSorted("formato"));
+  setupCombo("combo-companiero", uniqueSorted("companiero").map(v => [v, v]), "companiero", "Todos");
+  setupCombo("combo-rival", rivalPlayers().map(v => [v, v]), "rival", "Todos");
+  setupCombo("combo-anio", uniqueSorted("anio").map(v => [String(v), String(v)]), "anio", "Todos");
+  setupCombo("combo-mes", uniqueSorted("mes").map(n => [String(n), MESES[n]]), "mes", "Todos");
+  setupCombo("combo-cancha", uniqueSorted("cancha").map(v => [v, v]), "cancha", "Todas");
+  setupCombo("combo-formato", uniqueSorted("formato").map(v => [v, v]), "formato", "Todos");
 }
 
-// ---- Combobox con búsqueda (compañero / rival) ----
+// ---- Combobox multi-selección con checkboxes ----
+// items: array de [value, label]
 const combos = {};
 
 function setupCombo(comboId, items, filterKey, placeholder) {
@@ -45,36 +46,64 @@ function setupCombo(comboId, items, filterKey, placeholder) {
   const input = root.querySelector(".combo-input");
   const search = root.querySelector(".combo-search");
   const list = root.querySelector(".combo-list");
-  const all = ["", ...items]; // "" = opción "Todos"
+  const hasSearch = root.dataset.search === "1";
 
-  combos[comboId] = { root, input, search, list, filterKey, placeholder, all };
+  combos[comboId] = { root, input, search, list, filterKey, placeholder, items, hasSearch };
 
   input.addEventListener("click", () => toggleCombo(comboId));
-  search.addEventListener("input", () => renderComboList(comboId, search.value));
+  if (search) search.addEventListener("input", () => renderComboList(comboId, search.value));
   renderComboList(comboId, "");
+  updateComboInput(comboId);
 }
 
 function renderComboList(comboId, q) {
   const c = combos[comboId];
-  const query = q.trim().toLowerCase();
-  const filtered = c.all.filter(v =>
-    v === "" ? query === "" : v.toLowerCase().includes(query));
-  c.list.innerHTML = filtered.map(v => {
-    const label = v === "" ? c.placeholder : v;
-    const sel = filters[c.filterKey] === v ? " selected" : "";
-    return `<li class="combo-opt${sel}" data-val="${v.replace(/"/g, "&quot;")}">${label}</li>`;
-  }).join("") || '<li class="combo-empty">Sin resultados</li>';
+  const query = (q || "").trim().toLowerCase();
+  const sel = filters[c.filterKey];
+  const filtered = c.items.filter(([, label]) => label.toLowerCase().includes(query));
+
+  let html = `<li class="combo-opt combo-all" data-val="__all">
+      <span class="chk${sel.length === 0 ? " on" : ""}"></span>Todos</li>`;
+  html += filtered.map(([val, label]) => {
+    const on = sel.includes(val);
+    return `<li class="combo-opt" data-val="${String(val).replace(/"/g, "&quot;")}">
+      <span class="chk${on ? " on" : ""}"></span>${label}</li>`;
+  }).join("");
+  if (!filtered.length) html += '<li class="combo-empty">Sin resultados</li>';
+  c.list.innerHTML = html;
 
   c.list.querySelectorAll(".combo-opt").forEach(li => {
-    li.addEventListener("click", () => {
+    li.addEventListener("click", (ev) => {
+      ev.stopPropagation();
       const val = li.getAttribute("data-val");
-      filters[c.filterKey] = val;
-      c.input.value = val === "" ? "" : val;
-      c.input.placeholder = c.placeholder;
-      closeCombo(comboId);
+      if (val === "__all") {
+        filters[c.filterKey] = [];
+      } else {
+        const arr = filters[c.filterKey];
+        const i = arr.indexOf(val);
+        if (i === -1) arr.push(val); else arr.splice(i, 1);
+      }
+      renderComboList(comboId, c.hasSearch && c.search ? c.search.value : "");
+      updateComboInput(comboId);
       render();
     });
   });
+}
+
+function updateComboInput(comboId) {
+  const c = combos[comboId];
+  const sel = filters[c.filterKey];
+  if (sel.length === 0) {
+    c.input.value = "";
+    c.input.placeholder = c.placeholder;
+  } else {
+    // mostrar labels elegidos
+    const labels = sel.map(v => {
+      const found = c.items.find(([val]) => val === v);
+      return found ? found[1] : v;
+    });
+    c.input.value = labels.length <= 2 ? labels.join(", ") : `${labels.length} seleccionados`;
+  }
 }
 
 function toggleCombo(comboId) {
@@ -83,9 +112,11 @@ function toggleCombo(comboId) {
   closeAllCombos();
   if (!open) {
     c.root.classList.add("open");
-    c.search.value = "";
-    renderComboList(comboId, "");
-    setTimeout(() => c.search.focus(), 0);
+    if (c.hasSearch && c.search) {
+      c.search.value = "";
+      renderComboList(comboId, "");
+      setTimeout(() => c.search.focus(), 0);
+    }
   }
 }
 function closeCombo(comboId) { combos[comboId].root.classList.remove("open"); }
@@ -108,29 +139,13 @@ function rivalPlayers() {
   return [...set].sort((a, b) => a.localeCompare(b, "es"));
 }
 
-function fillSelect(id, items) {
-  const sel = el(id);
-  items.forEach(it => {
-    const opt = document.createElement("option");
-    if (Array.isArray(it)) { opt.value = it[0]; opt.textContent = it[1]; }
-    else { opt.value = it; opt.textContent = it; }
-    sel.appendChild(opt);
-  });
-}
-
 function bindFilters() {
-  const map = {
-    "f-anio": "anio", "f-mes": "mes", "f-cancha": "cancha", "f-formato": "formato"
-  };
-  Object.entries(map).forEach(([id, key]) => {
-    el(id).addEventListener("change", e => { filters[key] = e.target.value; render(); });
-  });
   el("reset").addEventListener("click", () => {
-    Object.keys(filters).forEach(k => filters[k] = "");
-    document.querySelectorAll(".filters select").forEach(s => s.value = "");
+    Object.keys(filters).forEach(k => filters[k] = []);
     Object.keys(combos).forEach(id => {
-      combos[id].input.value = "";
-      combos[id].search.value = "";
+      if (combos[id].search) combos[id].search.value = "";
+      updateComboInput(id);
+      renderComboList(id, "");
     });
     closeAllCombos();
     render();
@@ -138,13 +153,14 @@ function bindFilters() {
 }
 
 function applyFilters() {
+  const f = filters;
   return ALL.filter(m =>
-    (!filters.companiero || m.companiero === filters.companiero) &&
-    (!filters.rival || splitRivals(m.rivales).includes(filters.rival)) &&
-    (!filters.anio || String(m.anio) === filters.anio) &&
-    (!filters.mes || String(m.mes) === filters.mes) &&
-    (!filters.cancha || m.cancha === filters.cancha) &&
-    (!filters.formato || m.formato === filters.formato)
+    (!f.companiero.length || f.companiero.includes(m.companiero)) &&
+    (!f.rival.length || splitRivals(m.rivales).some(p => f.rival.includes(p))) &&
+    (!f.anio.length || f.anio.includes(String(m.anio))) &&
+    (!f.mes.length || f.mes.includes(String(m.mes))) &&
+    (!f.cancha.length || f.cancha.includes(m.cancha)) &&
+    (!f.formato.length || f.formato.includes(m.formato))
   );
 }
 
@@ -329,11 +345,13 @@ function topRanking(key, canvasId, chartKey) {
   const data = applyFilters();
   const groups = {};
   data.forEach(m => {
-    const g = m[key];
-    if (!g) return;
-    groups[g] = groups[g] || { pj: 0, pg: 0 };
-    groups[g].pj++;
-    if (m.resultado === "PG") groups[g].pg++;
+    // Para rivales, contabilizar cada persona por separado; para el resto, el valor directo
+    const names = key === "rivales" ? splitRivals(m.rivales) : (m[key] ? [m[key]] : []);
+    names.forEach(g => {
+      groups[g] = groups[g] || { pj: 0, pg: 0 };
+      groups[g].pj++;
+      if (m.resultado === "PG") groups[g].pg++;
+    });
   });
   const rows = Object.entries(groups)
     .map(([name, v]) => ({ name, pj: v.pj, pg: v.pg, pp: v.pj - v.pg }))
