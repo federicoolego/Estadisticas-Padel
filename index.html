@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pádel · Historial de Partidos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="title-block">
+        <div class="eyebrow">Rendimiento total</div>
+        <h1>Mis Partidos<br>de Pádel</h1>
+        <p class="sub">Análisis interactivo · filtrá y mirá cómo cambian tus números</p>
+      </div>
+      <div class="record-badge">
+        <div class="big" id="record"></div>
+        <div class="lbl">Ganados / Perdidos</div>
+      </div>
+    </header>
+
+    <section class="filters" aria-label="Filtros">
+      <div class="field"><label for="f-companiero">Compañero</label>
+        <select id="f-companiero"><option value="">Todos</option></select></div>
+      <div class="field"><label for="f-rival">Rival</label>
+        <select id="f-rival"><option value="">Todos</option></select></div>
+      <div class="field"><label for="f-anio">Año</label>
+        <select id="f-anio"><option value="">Todos</option></select></div>
+      <div class="field"><label for="f-mes">Mes</label>
+        <select id="f-mes"><option value="">Todos</option></select></div>
+      <div class="field"><label for="f-cancha">Cancha</label>
+        <select id="f-cancha"><option value="">Todas</option></select></div>
+      <div class="field"><label for="f-formato">Formato</label>
+        <select id="f-formato"><option value="">Todos</option></select></div>
+      <button class="reset" id="reset">Limpiar filtros</button>
+    </section>
+
+    <section class="kpis">
+      <div class="kpi"><div class="label">Partidos jugados</div><div class="value" id="kpi-pj">–</div></div>
+      <div class="kpi win"><div class="label">Ganados</div><div class="value" id="kpi-pg">–</div></div>
+      <div class="kpi loss"><div class="label">Perdidos</div><div class="value" id="kpi-pp">–</div></div>
+      <div class="kpi"><div class="label">Diferencia</div><div class="value" id="kpi-dif">–</div></div>
+      <div class="kpi win"><div class="label">Efectividad</div><div class="value" id="kpi-eff">–</div></div>
+    </section>
+
+    <section class="grid">
+      <div class="card"><h3>Balance de resultados</h3>
+        <div class="chart-box"><canvas id="chart-wl"></canvas></div></div>
+      <div class="card"><h3>Efectividad por mes</h3>
+        <div class="chart-box"><canvas id="chart-mes"></canvas></div></div>
+      <div class="card"><h3>Resultados por formato</h3>
+        <div class="chart-box"><canvas id="chart-formato"></canvas></div></div>
+      <div class="card"><h3>Resultados por cancha</h3>
+        <div class="chart-box"><canvas id="chart-cancha"></canvas></div></div>
+      <div class="card"><h3>Mejores compañeros · efectividad (mín. 2 PJ)</h3>
+        <div class="chart-box tall"><canvas id="chart-comp"></canvas></div></div>
+      <div class="card"><h3>Rivales más enfrentados · efectividad (mín. 2 PJ)</h3>
+        <div class="chart-box tall"><canvas id="chart-rival"></canvas></div></div>
+    </section>
+
+    <footer>
+      <span>Fuente de datos: <code>data/partidos.json</code></span>
+      <span>Pádel Stats · construido con Chart.js</span>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
