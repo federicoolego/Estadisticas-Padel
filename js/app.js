@@ -502,13 +502,30 @@ init();
 
   // ---- Generación de la imagen (solo KPIs) ----
   function txt(id) { const e = el(id); return e ? e.textContent.trim() : "–"; }
+  const FILTER_LABELS = {
+    anio: "Año", mes: "Mes", formato: "Formato",
+    cancha: "Cancha", companiero: "Compañero", rival: "Rival"
+  };
+  // orden de aparición de los filtros
+  const FILTER_ORDER = ["anio", "mes", "formato", "cancha", "companiero", "rival"];
+
+  function labelForValue(filterKey, val) {
+    if (filterKey === "mes") {
+      const n = parseInt(val, 10);
+      return (typeof MESES !== "undefined" && MESES[n]) ? MESES[n] : String(val);
+    }
+    return String(val);
+  }
+
   function shownFilters() {
     const out = [];
-    for (const id in combos) {
-      const c = combos[id];
-      const arr = filters[c.filterKey] || [];
-      if (arr.length) out.push(c.placeholder + ": " + arr.map(String).join(", "));
-    }
+    FILTER_ORDER.forEach(key => {
+      const arr = filters[key] || [];
+      if (arr.length) {
+        const vals = arr.map(v => labelForValue(key, v)).join(", ");
+        out.push((FILTER_LABELS[key] || key) + ": " + vals);
+      }
+    });
     return out;
   }
 
