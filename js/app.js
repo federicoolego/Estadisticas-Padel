@@ -442,3 +442,209 @@ function topRanking(key, canvasId, chartKey) {
 }
 
 init();
+
+// ================= WhatsApp: botón flotante arrastrable + imagen de KPIs =================
+(function () {
+  const fab = document.getElementById("wa-share");
+  if (!fab) return;
+
+  // ---- Drag (mouse + touch) ----
+  let dragging = false, moved = false, sx = 0, sy = 0, ox = 0, oy = 0;
+  const M = 6; // margen mínimo al borde
+
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+  function place(left, top) {
+    const w = fab.offsetWidth, h = fab.offsetHeight;
+    left = clamp(left, M, window.innerWidth - w - M);
+    top = clamp(top, M, window.innerHeight - h - M);
+    fab.style.left = left + "px";
+    fab.style.top = top + "px";
+    fab.style.right = "auto";
+    fab.style.bottom = "auto";
+  }
+
+  function down(x, y) {
+    dragging = true; moved = false;
+    const r = fab.getBoundingClientRect();
+    ox = x - r.left; oy = y - r.top; sx = x; sy = y;
+    fab.classList.add("dragging");
+  }
+  function move(x, y) {
+    if (!dragging) return;
+    if (Math.abs(x - sx) > 4 || Math.abs(y - sy) > 4) moved = true;
+    place(x - ox, y - oy);
+  }
+  function up() {
+    if (!dragging) return;
+    dragging = false;
+    fab.classList.remove("dragging");
+  }
+
+  fab.addEventListener("mousedown", e => { down(e.clientX, e.clientY); e.preventDefault(); });
+  window.addEventListener("mousemove", e => move(e.clientX, e.clientY));
+  window.addEventListener("mouseup", up);
+
+  fab.addEventListener("touchstart", e => { const t = e.touches[0]; down(t.clientX, t.clientY); }, { passive: true });
+  fab.addEventListener("touchmove", e => { const t = e.touches[0]; move(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
+  fab.addEventListener("touchend", up);
+
+  window.addEventListener("resize", () => {
+    const r = fab.getBoundingClientRect();
+    if (fab.style.left) place(r.left, r.top);
+  });
+
+  // No compartir si fue un arrastre
+  fab.addEventListener("click", e => {
+    if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; return; }
+    shareStats();
+  });
+
+  // ---- Generación de la imagen (solo KPIs) ----
+  function txt(id) { const e = el(id); return e ? e.textContent.trim() : "–"; }
+  function shownFilters() {
+    const out = [];
+    for (const id in combos) {
+      const c = combos[id];
+      const arr = filters[c.filterKey] || [];
+      if (arr.length) out.push(c.placeholder + ": " + arr.map(String).join(", "));
+    }
+    return out;
+  }
+
+  function buildImage() {
+    const DPR = 2;
+    const W = 1080, H = 1080;
+    const cv = document.createElement("canvas");
+    cv.width = W * DPR; cv.height = H * DPR;
+    const ctx = cv.getContext("2d");
+    ctx.scale(DPR, DPR);
+
+    // fondo
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, "#0d1117"); g.addColorStop(1, "#0a0e14");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    // glow verde arriba-izq
+    const rg = ctx.createRadialGradient(150, -40, 0, 150, -40, 520);
+    rg.addColorStop(0, "rgba(74,222,128,0.16)"); rg.addColorStop(1, "rgba(74,222,128,0)");
+    ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+
+    const PAD = 64;
+    // eyebrow
+    ctx.fillStyle = "#4ade80";
+    ctx.font = "600 22px Inter, sans-serif";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("RENDIMIENTO TOTAL", PAD, 96);
+    // título
+    ctx.fillStyle = "#e6edf3";
+    ctx.font = "700 76px 'Barlow Condensed', Arial Narrow, sans-serif";
+    ctx.fillText("MIS PARTIDOS DE PÁDEL", PAD, 168);
+    // subtítulo / última actualización
+    ctx.fillStyle = "#8b949e";
+    ctx.font = "500 24px Inter, sans-serif";
+    ctx.fillText(txt("last-update") || "", PAD, 208);
+
+    // filtros activos (si hay)
+    const fl = shownFilters();
+    let filterLine = fl.length ? fl.join("  ·  ") : "Todos los partidos";
+    ctx.fillStyle = "#9aa4b0";
+    ctx.font = "500 22px Inter, sans-serif";
+    if (ctx.measureText(filterLine).width > W - PAD * 2) {
+      while (ctx.measureText(filterLine + "…").width > W - PAD * 2 && filterLine.length) filterLine = filterLine.slice(0, -1);
+      filterLine += "…";
+    }
+    ctx.fillText("Filtros · " + filterLine, PAD, 248);
+
+    // datos KPI
+    const eff = txt("kpi-eff");
+    const cards = [
+      { label: "PARTIDOS JUGADOS", value: txt("kpi-pj"), color: "#e6edf3" },
+      { label: "GANADOS", value: txt("kpi-pg"), color: "#4ade80" },
+      { label: "PERDIDOS", value: txt("kpi-pp"), color: "#f87171" },
+      { label: "DIFERENCIA", value: txt("kpi-dif"), color: "#e6edf3" },
+      { label: "EFECTIVIDAD", value: eff, color: "#4ade80" },
+      { label: "MEJOR RACHA POSITIVA", value: txt("kpi-rp"), color: "#4ade80" },
+      { label: "PEOR RACHA NEGATIVA", value: txt("kpi-rn"), color: "#f87171" },
+      { label: "RACHA ACTUAL", value: txt("kpi-ra"), color: el("kpi-card-actual").classList.contains("loss") ? "#f87171" : "#4ade80" },
+    ];
+
+    // grilla 2 columnas x 4 filas
+    const cols = 2, gap = 26;
+    const gridTop = 300, gridBottom = 1000;
+    const cw = (W - PAD * 2 - gap * (cols - 1)) / cols;
+    const rows = Math.ceil(cards.length / cols);
+    const ch = (gridBottom - gridTop - gap * (rows - 1)) / rows;
+
+    cards.forEach((c, i) => {
+      const cx = PAD + (i % cols) * (cw + gap);
+      const cy = gridTop + Math.floor(i / cols) * (ch + gap);
+      // tarjeta
+      roundRect(ctx, cx, cy, cw, ch, 18);
+      ctx.fillStyle = "#161b22"; ctx.fill();
+      ctx.strokeStyle = "#2a313c"; ctx.lineWidth = 1; ctx.stroke();
+      // barrita de acento
+      ctx.fillStyle = c.color;
+      roundRect(ctx, cx, cy, 6, ch, 3); ctx.fill();
+      // label
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "600 20px Inter, sans-serif";
+      ctx.fillText(c.label, cx + 30, cy + 44);
+      // valor (limpiar % y paréntesis para render numérico grande)
+      ctx.fillStyle = c.color;
+      ctx.font = "700 72px 'Barlow Condensed', Arial Narrow, sans-serif";
+      ctx.fillText(c.value.replace(/\s+/g, " "), cx + 30, cy + ch - 30);
+    });
+
+    // footer
+    ctx.fillStyle = "#8b949e";
+    ctx.font = "500 22px Inter, sans-serif";
+    ctx.fillText("Estadísticas de Pádel · Federico Olego", PAD, 1048);
+
+    return cv;
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function canvasToBlob(cv) {
+    return new Promise(res => cv.toBlob(res, "image/png"));
+  }
+
+  async function shareStats() {
+    fab.classList.add("busy");
+    try {
+      // esperar a que las fuentes estén listas para el canvas
+      if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (_) {} }
+      const cv = buildImage();
+      const blob = await canvasToBlob(cv);
+      const file = new File([blob], "mis-estadisticas-padel.png", { type: "image/png" });
+      const rec = txt("record").replace(/\s+/g, "");
+      const text = "Mis estadísticas de pádel 🎾 " + (txt("kpi-pg") + " ganados / " + txt("kpi-pp") + " perdidos · " + txt("kpi-eff") + " efectividad");
+
+      // 1) Web Share con archivo (móvil moderno)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], text });
+        return;
+      }
+      // 2) Fallback: descargar imagen + abrir WhatsApp con el texto
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+    } catch (err) {
+      if (err && err.name === "AbortError") return; // usuario canceló el share
+      console.error(err);
+      alert("No se pudo generar la imagen para compartir.");
+    } finally {
+      fab.classList.remove("busy");
+    }
+  }
+})();
