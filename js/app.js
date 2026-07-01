@@ -161,41 +161,65 @@ function renderCharts(data) {
     }, plugins: { legend: { display: false } } })
   });
 
-  // 3. PG vs PP por formato
-  const groupBar = (key, canvasId, chartKey) => {
+  // 3. Combo por formato / cancha: barras apiladas PG/PP (total = alto de barra) + línea de efectividad
+  const comboBar = (key, canvasId, chartKey) => {
     const groups = {};
     data.forEach(m => {
       const g = m[key] || "—";
       groups[g] = groups[g] || { pg: 0, pp: 0 };
       groups[g][m.resultado === "PG" ? "pg" : "pp"]++;
     });
+    // orden por total de partidos (PJ) desc
     const labels = Object.keys(groups).sort((a, b) =>
       (groups[b].pg + groups[b].pp) - (groups[a].pg + groups[a].pp));
+    const eff = labels.map(l => {
+      const pj = groups[l].pg + groups[l].pp;
+      return pj ? +((groups[l].pg / pj) * 100).toFixed(1) : 0;
+    });
     destroyChart(chartKey);
     charts[chartKey] = new Chart(el(canvasId), {
-      type: "bar",
       data: {
         labels,
         datasets: [
-          { label: "Ganados", data: labels.map(l => groups[l].pg), backgroundColor: WIN },
-          { label: "Perdidos", data: labels.map(l => groups[l].pp), backgroundColor: LOSS }
+          { type: "bar", label: "Ganados", data: labels.map(l => groups[l].pg),
+            backgroundColor: WIN, stack: "s", yAxisID: "y", order: 2 },
+          { type: "bar", label: "Perdidos", data: labels.map(l => groups[l].pp),
+            backgroundColor: LOSS, stack: "s", yAxisID: "y", order: 2 },
+          { type: "line", label: "Efectividad %", data: eff,
+            borderColor: ACCENT, backgroundColor: ACCENT,
+            pointBackgroundColor: ACCENT, pointRadius: 4, tension: 0.35,
+            yAxisID: "y1", order: 1 }
         ]
       },
-      options: baseOpts({ scales: {
-        x: { stacked: true, grid: { color: GRID }, ticks: { color: TICK } },
-        y: { stacked: true, grid: { color: GRID }, ticks: { color: TICK }, beginAtZero: true }
-      }})
+      options: baseOpts({
+        plugins: {
+          legend: { labels: { boxWidth: 12, padding: 14 } },
+          tooltip: { callbacks: { label: c =>
+            c.dataset.type === "line"
+              ? `Efectividad: ${c.parsed.y}%`
+              : `${c.dataset.label}: ${c.parsed.y}` } }
+        },
+        scales: {
+          x: { stacked: true, grid: { color: GRID }, ticks: { color: TICK } },
+          y: { stacked: true, position: "left", beginAtZero: true,
+               grid: { color: GRID }, ticks: { color: TICK, precision: 0 },
+               title: { display: true, text: "Partidos", color: TICK } },
+          y1: { position: "right", beginAtZero: true, max: 100,
+                grid: { drawOnChartArea: false }, ticks: { color: ACCENT, callback: v => v + "%" },
+                title: { display: true, text: "Efectividad", color: ACCENT } }
+        }
+      })
     });
   };
-  groupBar("formato", "chart-formato", "formato");
-  groupBar("cancha", "chart-cancha", "cancha");
+  comboBar("formato", "chart-formato", "formato");
+  comboBar("cancha", "chart-cancha", "cancha");
 
-  // 4. Top compañeros por efectividad (mín 2 PJ)
-  topBar("companiero", "chart-comp", "comp");
-  topBar("rivales", "chart-rival", "rival");
+  // 4. TOP 5 compañeros y rivales: orden PJ → PG → alfabético
+  topRanking("companiero", "chart-comp", "comp");
+  topRanking("rivales", "chart-rival", "rival");
 }
 
-function topBar(key, canvasId, chartKey) {
+function topRanking(key, canvasId, chartKey) {
   const data = applyFilters();
   const groups = {};
   data.forEach(m => {
@@ -206,27 +230,38 @@ function topBar(key, canvasId, chartKey) {
     if (m.resultado === "PG") groups[g].pg++;
   });
   const rows = Object.entries(groups)
-    .filter(([, v]) => v.pj >= 2)
-    .map(([name, v]) => ({ name, pj: v.pj, eff: v.pg / v.pj }))
-    .sort((a, b) => b.eff - a.eff || b.pj - a.pj)
-    .slice(0, 8);
+    .map(([name, v]) => ({ name, pj: v.pj, pg: v.pg, pp: v.pj - v.pg }))
+    .sort((a, b) =>
+      b.pj - a.pj ||
+      b.pg - a.pg ||
+      a.name.localeCompare(b.name, "es"))
+    .slice(0, 5);
+
   destroyChart(chartKey);
   charts[chartKey] = new Chart(el(canvasId), {
     type: "bar",
     data: {
-      labels: rows.map(r => `${r.name} (${r.pj})`),
-      datasets: [{
-        label: "Efectividad %",
-        data: rows.map(r => +(r.eff * 100).toFixed(1)),
-        backgroundColor: rows.map(r => r.eff >= 0.5 ? WIN : LOSS)
-      }]
+      labels: rows.map(r => r.name),
+      datasets: [
+        { label: "Ganados", data: rows.map(r => r.pg), backgroundColor: WIN, stack: "s" },
+        { label: "Perdidos", data: rows.map(r => r.pp), backgroundColor: LOSS, stack: "s" }
+      ]
     },
     options: baseOpts({
       indexAxis: "y",
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + "%" } } },
+      plugins: {
+        legend: { labels: { boxWidth: 12, padding: 14 } },
+        tooltip: { callbacks: {
+          label: c => `${c.dataset.label}: ${c.parsed.x}`,
+          footer: items => {
+            const r = rows[items[0].dataIndex];
+            return `Total: ${r.pj} · Efec: ${((r.pg / r.pj) * 100).toFixed(0)}%`;
+          }
+        } }
+      },
       scales: {
-        x: { grid: { color: GRID }, ticks: { color: TICK, callback: v => v + "%" }, beginAtZero: true, max: 100 },
-        y: { grid: { color: GRID }, ticks: { color: TICK } }
+        x: { stacked: true, grid: { color: GRID }, ticks: { color: TICK, precision: 0 }, beginAtZero: true },
+        y: { stacked: true, grid: { color: GRID }, ticks: { color: TICK } }
       }
     })
   });
