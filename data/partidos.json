@@ -2410,5 +2410,41 @@
     "rivales": "Ivan Barberis - Fernando Dadamo",
     "resultado": "PP",
     "dia": "Martes"
+  },
+  {
+    "id": 202,
+    "fecha": "2026-07-02",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Agustin Sanchez - Ivan Barberis",
+    "resultado": "PP",
+    "dia": "Jueves"
+  },
+  {
+    "id": 203,
+    "fecha": "2026-07-03",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TURNO MIXTO",
+    "companiero": "Jimena Barberis",
+    "rivales": "Florencia Caletrio - Rodrigo Sunsundegui",
+    "resultado": "PP",
+    "dia": "Viernes"
+  },
+  {
+    "id": 204,
+    "fecha": "2026-07-05",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO MIXTO",
+    "companiero": "Florencia Caletrio",
+    "rivales": "Belen Pacchioni - Gallo Pucheta",
+    "resultado": "PG",
+    "dia": "Domingo"
   }
 ]
