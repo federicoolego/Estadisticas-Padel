@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pádel · Historial de Partidos</title>
+  <title>Pádel · Estadísticas</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,101 +12,205 @@
 </head>
 <body>
   <div class="wrap">
-    <header class="hero">
-      <div class="title-block">
-        <div class="eyebrow">Rendimiento total</div>
-        <h1>Mis Partidos<br>de Pádel</h1>
-        <p class="sub">Federico Olego</p>
-        <p class="updated" id="last-update"></p>
-      </div>
-      <div class="record-badge">
-        <div class="big" id="record"></div>
-        <div class="lbl">Ganados / Perdidos</div>
-      </div>
-    </header>
 
-    <section class="filters" aria-label="Filtros">
-      <div class="field"><label>Año</label>
-        <div class="combo" id="combo-anio">
-          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Año">
-          <div class="combo-panel"><ul class="combo-list"></ul></div>
-        </div></div>
-      <div class="field"><label>Mes</label>
-        <div class="combo" id="combo-mes">
-          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Mes">
-          <div class="combo-panel"><ul class="combo-list"></ul></div>
-        </div></div>
-      <div class="field"><label>Formato</label>
-        <div class="combo" id="combo-formato">
-          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Formato">
-          <div class="combo-panel"><ul class="combo-list"></ul></div>
-        </div></div>
-      <div class="field"><label>Cancha</label>
-        <div class="combo" id="combo-cancha">
-          <input type="text" class="combo-input" readonly placeholder="Todas" aria-label="Cancha">
-          <div class="combo-panel"><ul class="combo-list"></ul></div>
-        </div></div>
-      <div class="field"><label>Compañero</label>
-        <div class="combo" id="combo-companiero" data-search="1">
-          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Compañero">
-          <div class="combo-panel">
-            <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
-            <ul class="combo-list"></ul>
-          </div>
-        </div></div>
-      <div class="field"><label>Rival</label>
-        <div class="combo" id="combo-rival" data-search="1">
-          <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Rival">
-          <div class="combo-panel">
-            <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
-            <ul class="combo-list"></ul>
-          </div>
-        </div></div>
-      <button class="reset" id="reset">Limpiar filtros</button>
-    </section>
+    <!-- Tabs -->
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button class="tab active" data-tab="partidos" role="tab" aria-selected="true">🎾 Partidos</button>
+      <button class="tab" data-tab="torneos" role="tab" aria-selected="false">🏆 Torneos</button>
+    </nav>
 
-    <section class="kpis kpis-main">
-      <div class="kpi"><div class="label">Partidos jugados</div><div class="value" id="kpi-pj">–</div></div>
-      <div class="kpi win"><div class="label">Ganados</div><div class="value" id="kpi-pg">–</div></div>
-      <div class="kpi loss"><div class="label">Perdidos</div><div class="value" id="kpi-pp">–</div></div>
-      <div class="kpi"><div class="label">Diferencia</div><div class="value" id="kpi-dif">–</div></div>
-      <div class="kpi win"><div class="label">Efectividad</div><div class="value" id="kpi-eff">–</div></div>
-    </section>
-    <section class="kpis kpis-streak">
-      <div class="kpi win"><div class="label">Mejor racha positiva</div><div class="value" id="kpi-rp">–</div></div>
-      <div class="kpi loss"><div class="label">Peor racha negativa</div><div class="value" id="kpi-rn">–</div></div>
-      <div class="kpi" id="kpi-card-actual"><div class="label">Racha actual</div><div class="value" id="kpi-ra">–</div></div>
-    </section>
+    <!-- ================= TAB PARTIDOS ================= -->
+    <div id="tab-partidos" class="tab-content active">
+      <header class="hero">
+        <div class="title-block">
+          <div class="eyebrow">Rendimiento total</div>
+          <h1>Mis Partidos<br>de Pádel</h1>
+          <p class="sub">Federico Olego</p>
+          <p class="updated" id="last-update"></p>
+        </div>
+        <div class="record-badge">
+          <div class="big" id="record"></div>
+          <div class="lbl">Ganados / Perdidos</div>
+        </div>
+      </header>
 
-    <section class="grid">
-      <div class="card"><h3>Año · partidos y efectividad</h3>
-        <div class="chart-box"><canvas id="chart-anio"></canvas></div></div>
-      <div class="card"><h3>Mes · partidos y efectividad</h3>
-        <div class="chart-box"><canvas id="chart-mes"></canvas></div></div>
-      <div class="card"><h3>Formato · partidos y efectividad</h3>
-        <div class="chart-box"><canvas id="chart-formato"></canvas></div></div>
-      <div class="card"><h3>Cancha · partidos y efectividad</h3>
-        <div class="chart-box"><canvas id="chart-cancha"></canvas></div></div>
-      <div class="card"><h3>Top 5 compañeros · más partidos jugados</h3>
-        <div class="chart-box tall"><canvas id="chart-comp"></canvas></div></div>
-      <div class="card"><h3>Top 5 rivales · más partidos jugados</h3>
-        <div class="chart-box tall"><canvas id="chart-rival"></canvas></div></div>
-    </section>
+      <section class="filters" aria-label="Filtros">
+        <div class="field"><label>Año</label>
+          <div class="combo" id="combo-anio">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Año">
+            <div class="combo-panel"><ul class="combo-list"></ul></div>
+          </div></div>
+        <div class="field"><label>Mes</label>
+          <div class="combo" id="combo-mes">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Mes">
+            <div class="combo-panel"><ul class="combo-list"></ul></div>
+          </div></div>
+        <div class="field"><label>Formato</label>
+          <div class="combo" id="combo-formato">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Formato">
+            <div class="combo-panel"><ul class="combo-list"></ul></div>
+          </div></div>
+        <div class="field"><label>Cancha</label>
+          <div class="combo" id="combo-cancha">
+            <input type="text" class="combo-input" readonly placeholder="Todas" aria-label="Cancha">
+            <div class="combo-panel"><ul class="combo-list"></ul></div>
+          </div></div>
+        <div class="field"><label>Compañero</label>
+          <div class="combo" id="combo-companiero" data-search="1">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Compañero">
+            <div class="combo-panel">
+              <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
+              <ul class="combo-list"></ul>
+            </div>
+          </div></div>
+        <div class="field"><label>Rival</label>
+          <div class="combo" id="combo-rival" data-search="1">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Rival">
+            <div class="combo-panel">
+              <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
+              <ul class="combo-list"></ul>
+            </div>
+          </div></div>
+        <button class="reset" id="reset">Limpiar filtros</button>
+      </section>
 
-    <section class="card full table-card">
-      <h3>Detalle de partidos <span class="count" id="tabla-count"></span></h3>
-      <div class="table-scroll">
-        <table class="tabla">
-          <thead>
-            <tr>
-              <th>#</th><th>Fecha</th><th>Formato</th><th>Compañero</th>
-              <th>VS</th><th>Rivales</th><th>Resultado</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-body"></tbody>
-        </table>
-      </div>
-    </section>
+      <section class="kpis kpis-main">
+        <div class="kpi"><div class="label">Partidos jugados</div><div class="value" id="kpi-pj">–</div></div>
+        <div class="kpi win"><div class="label">Ganados</div><div class="value" id="kpi-pg">–</div></div>
+        <div class="kpi loss"><div class="label">Perdidos</div><div class="value" id="kpi-pp">–</div></div>
+        <div class="kpi"><div class="label">Diferencia</div><div class="value" id="kpi-dif">–</div></div>
+        <div class="kpi win"><div class="label">Efectividad</div><div class="value" id="kpi-eff">–</div></div>
+      </section>
+      <section class="kpis kpis-streak">
+        <div class="kpi win"><div class="label">Mejor racha positiva</div><div class="value" id="kpi-rp">–</div></div>
+        <div class="kpi loss"><div class="label">Peor racha negativa</div><div class="value" id="kpi-rn">–</div></div>
+        <div class="kpi" id="kpi-card-actual"><div class="label">Racha actual</div><div class="value" id="kpi-ra">–</div></div>
+      </section>
+
+      <section class="grid">
+        <div class="card"><h3>Año · partidos y efectividad</h3>
+          <div class="chart-box"><canvas id="chart-anio"></canvas></div></div>
+        <div class="card"><h3>Mes · partidos y efectividad</h3>
+          <div class="chart-box"><canvas id="chart-mes"></canvas></div></div>
+        <div class="card"><h3>Formato · partidos y efectividad</h3>
+          <div class="chart-box"><canvas id="chart-formato"></canvas></div></div>
+        <div class="card"><h3>Cancha · partidos y efectividad</h3>
+          <div class="chart-box"><canvas id="chart-cancha"></canvas></div></div>
+        <div class="card"><h3>Top 5 compañeros · más partidos jugados</h3>
+          <div class="chart-box tall"><canvas id="chart-comp"></canvas></div></div>
+        <div class="card"><h3>Top 5 rivales · más partidos jugados</h3>
+          <div class="chart-box tall"><canvas id="chart-rival"></canvas></div></div>
+      </section>
+
+      <section class="card full table-card">
+        <h3>Detalle de partidos <span class="count" id="tabla-count"></span></h3>
+        <div class="table-scroll">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>#</th><th>Fecha</th><th>Formato</th><th>Compañero</th>
+                <th>VS</th><th>Rivales</th><th>Resultado</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= TAB TORNEOS ================= -->
+    <div id="tab-torneos" class="tab-content">
+      <header class="hero">
+        <div class="title-block">
+          <div class="eyebrow">Circuito de torneos</div>
+          <h1>Mis Torneos<br>de Pádel</h1>
+          <p class="sub">Federico Olego</p>
+          <p class="updated" id="t-last-update"></p>
+        </div>
+        <div class="record-badge">
+          <div class="big" id="t-record"></div>
+          <div class="lbl">Campeón / Sin podio</div>
+        </div>
+      </header>
+
+      <section class="filters" aria-label="Filtros">
+        <div class="field"><label>Año</label>
+          <div class="combo" id="t-combo-anio">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Año">
+            <div class="combo-panel"><ul class="combo-list"></ul></div>
+          </div></div>
+        <div class="field"><label>Mes</label>
+          <div class="combo" id="t-combo-mes">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Mes">
+            <div class="combo-panel"><ul class="combo-list"></ul></div>
+          </div></div>
+        <div class="field"><label>Organizador</label>
+          <div class="combo" id="t-combo-organizador">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Organizador">
+            <div class="combo-panel"><ul class="combo-list"></ul></div>
+          </div></div>
+        <div class="field"><label>Categoría</label>
+          <div class="combo" id="t-combo-categoria">
+            <input type="text" class="combo-input" readonly placeholder="Todas" aria-label="Categoría">
+            <div class="combo-panel"><ul class="combo-list"></ul></div>
+          </div></div>
+        <div class="field"><label>Compañero</label>
+          <div class="combo" id="t-combo-companiero" data-search="1">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Compañero">
+            <div class="combo-panel">
+              <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
+              <ul class="combo-list"></ul>
+            </div>
+          </div></div>
+        <div class="field"><label>Puesto</label>
+          <div class="combo" id="t-combo-puesto">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Puesto">
+            <div class="combo-panel"><ul class="combo-list"></ul></div>
+          </div></div>
+        <button class="reset" id="t-reset">Limpiar filtros</button>
+      </section>
+
+      <section class="kpis kpis-main">
+        <div class="kpi"><div class="label">Torneos jugados</div><div class="value" id="t-kpi-tj">–</div></div>
+        <div class="kpi gold"><div class="label">🥇 Campeón</div><div class="value" id="t-kpi-camp">–</div></div>
+        <div class="kpi silver"><div class="label">🥈 Subcampeón</div><div class="value" id="t-kpi-sub">–</div></div>
+        <div class="kpi"><div class="label">Podios totales</div><div class="value" id="t-kpi-podios">–</div></div>
+        <div class="kpi win"><div class="label">% Podios</div><div class="value" id="t-kpi-eff">–</div></div>
+      </section>
+      <section class="kpis kpis-streak">
+        <div class="kpi"><div class="label">Finales jugadas</div><div class="value" id="t-kpi-finales">–</div></div>
+        <div class="kpi"><div class="label">Semifinales alcanzadas</div><div class="value" id="t-kpi-semis">–</div></div>
+        <div class="kpi"><div class="label">Instancia más frecuente</div><div class="value" id="t-kpi-inst">–</div></div>
+      </section>
+
+      <section class="grid">
+        <div class="card"><h3>Año · torneos y % podios</h3>
+          <div class="chart-box"><canvas id="t-chart-anio"></canvas></div></div>
+        <div class="card"><h3>Organizador · torneos y % podios</h3>
+          <div class="chart-box"><canvas id="t-chart-organizador"></canvas></div></div>
+        <div class="card"><h3>Categoría · torneos y % podios</h3>
+          <div class="chart-box"><canvas id="t-chart-categoria"></canvas></div></div>
+        <div class="card"><h3>Instancia alcanzada · distribución</h3>
+          <div class="chart-box"><canvas id="t-chart-instancia"></canvas></div></div>
+        <div class="card full"><h3>Top 5 compañeros · más torneos jugados</h3>
+          <div class="chart-box tall"><canvas id="t-chart-comp"></canvas></div></div>
+      </section>
+
+      <section class="card full table-card">
+        <h3>Detalle de torneos <span class="count" id="t-tabla-count"></span></h3>
+        <div class="table-scroll">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>#</th><th>Fecha</th><th>Organizador</th><th>Compañero</th>
+                <th>Categoría</th><th>Instancia máx.</th><th>Puesto</th>
+              </tr>
+            </thead>
+            <tbody id="t-tabla-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
 
     <footer>
       <span><code>Estadisticas de Padel</code></span>
@@ -121,6 +225,39 @@
   </button>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="js/app.js?v=2"></script>
+  <script src="js/app.js?v=3"></script>
+  <script src="js/torneos.js?v=1"></script>
+  <script>
+    // ================= Tabs switcher =================
+    (function () {
+      const tabs = document.querySelectorAll(".tab");
+      const contents = document.querySelectorAll(".tab-content");
+      const fab = document.getElementById("wa-share");
+
+      function activate(name) {
+        tabs.forEach(t => {
+          const on = t.dataset.tab === name;
+          t.classList.toggle("active", on);
+          t.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        contents.forEach(c => c.classList.toggle("active", c.id === "tab-" + name));
+
+        // WhatsApp: solo funcional en Partidos por ahora
+        if (fab) fab.style.display = (name === "partidos") ? "" : "none";
+
+        // Lazy init de la tab correspondiente
+        if (name === "partidos" && typeof window.initPartidos === "function") window.initPartidos();
+        if (name === "torneos" && typeof window.initTorneos === "function") window.initTorneos();
+
+        // Trigger resize por si Chart.js no midió bien mientras estaba oculto
+        setTimeout(() => window.dispatchEvent(new Event("resize")), 30);
+      }
+
+      tabs.forEach(t => t.addEventListener("click", () => activate(t.dataset.tab)));
+
+      // Inicial: Partidos
+      activate("partidos");
+    })();
+  </script>
 </body>
 </html>
