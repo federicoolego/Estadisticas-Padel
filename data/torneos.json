@@ -110,21 +110,5 @@
     "semifinal": null,
     "final": null,
     "puesto": null
-  },
-  {
-    "id": 8,
-    "fecha": "2026-07-10",
-    "mes": 7,
-    "anio": 2026,
-    "dia": "Viernes",
-    "organizador": "CIRCUITO PM",
-    "companiero": "German Villalba",
-    "categoria": "6ta",
-    "zona": false,
-    "octavos": null,
-    "cuartos": null,
-    "semifinal": null,
-    "final": null,
-    "puesto": null
   }
 ]
