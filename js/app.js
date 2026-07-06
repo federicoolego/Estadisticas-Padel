@@ -441,7 +441,7 @@ function topRanking(key, canvasId, chartKey) {
   });
 }
 
-init();
+window.initPartidos = init;
 
 // ================= WhatsApp: botón flotante arrastrable + imagen de KPIs =================
 (function () {
