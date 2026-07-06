@@ -483,7 +483,7 @@
         if (inst && buckets[inst] !== undefined) buckets[inst]++;
       }
     });
-    const labels = ["Zona", "Octavos", "Cuartos", "Semifinal", "Final", "Campeón"];
+    const labels = ["Zona", "Octavos", "Cuartos", "Semifinal", "Subcampeón", "Campeón"];
     const values = [buckets.zona, buckets.octavos, buckets.cuartos, buckets.semifinal, buckets.final, buckets.campeon];
     const colors = ["#475569", "#64748b", "#94a3b8", BRONZE, SILVER, GOLD];
 
