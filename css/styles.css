@@ -429,3 +429,51 @@ footer {
 .wa-fab:active { transform: scale(.94); }
 .wa-fab.dragging { transition: none; box-shadow: 0 10px 26px rgba(0,0,0,.6); cursor: grabbing; }
 .wa-fab.busy { opacity: .6; pointer-events: none; }
+
+/* ---- Tabs (Partidos / Torneos) ---- */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px;
+  width: fit-content;
+}
+.tab {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all .15s;
+}
+.tab:hover { color: var(--text); background: var(--panel-2); }
+.tab.active {
+  background: var(--accent);
+  color: #0d1117;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ---- KPIs oro / plata (Torneos) ---- */
+.kpi.gold::before { background: #fbbf24; opacity: 1; }
+.kpi.gold .value { color: #fbbf24; }
+.kpi.silver::before { background: #cbd5e1; opacity: 1; }
+.kpi.silver .value { color: #cbd5e1; }
+
+/* ---- Badges de podio ---- */
+.badge.b-gold { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.badge.b-silver { background: rgba(203,213,225,0.15); color: #cbd5e1; }
+.badge.b-bronze { background: rgba(217,119,6,0.18); color: #d97706; }
+
+@media (max-width: 640px) {
+  .tabs { width: 100%; }
+  .tab { flex: 1; text-align: center; padding: 10px 8px; font-size: 12px; }
+}
