@@ -11,14 +11,11 @@
   align-items: center;
 }
 
-/* Elementos con clase .admin-only quedan ocultos hasta que hay sesión */
 .admin-only { display: none !important; }
 body.is-admin .admin-only { display: inline-flex !important; }
 
-/* En modo Local el botón Admin no tiene sentido: se oculta por completo */
 html.env-local #admin-toggle { display: none !important; }
 
-/* -------- Botón Admin -------- */
 .admin-toggle,
 .env-toggle {
   display: inline-flex;
@@ -47,17 +44,9 @@ body.is-admin .admin-toggle {
   color: var(--accent);
   border-color: var(--accent);
 }
+.env-toggle.local { color: var(--muted); }
+.env-toggle.prod { color: var(--accent); border-color: var(--accent); }
 
-/* -------- Botón entorno (colores según modo) -------- */
-.env-toggle.local {
-  color: var(--muted);
-}
-.env-toggle.prod {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-/* -------- Botón "Nuevo" dentro de la hero -------- */
 .admin-new-btn {
   margin-top: 12px;
   padding: 8px 16px;
@@ -74,11 +63,8 @@ body.is-admin .admin-toggle {
 .admin-new-btn:hover { background: var(--accent-dim); }
 .admin-new-btn:active { transform: translateY(1px); }
 
-/* -------- Filas de tabla clickeables cuando admin -------- */
 body.is-admin .tabla tbody tr { cursor: pointer; }
-body.is-admin .tabla tbody tr:hover td {
-  background: rgba(74, 222, 128, 0.06);
-}
+body.is-admin .tabla tbody tr:hover td { background: rgba(74, 222, 128, 0.06); }
 
 /* -------- Modal -------- */
 .admin-backdrop {
@@ -111,7 +97,6 @@ body.is-admin .tabla tbody tr:hover td {
   from { transform: translateY(-10px); opacity: 0; }
   to   { transform: translateY(0);     opacity: 1; }
 }
-
 body.admin-modal-open { overflow: hidden; }
 
 .admin-title {
@@ -123,21 +108,9 @@ body.admin-modal-open { overflow: hidden; }
   letter-spacing: 0.5px;
   margin-bottom: 6px;
 }
-.admin-sub {
-  color: var(--muted);
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-.admin-hint {
-  color: var(--muted);
-  font-size: 13px;
-  margin-top: 16px;
-}
-.admin-hint-inline {
-  color: var(--muted);
-  font-weight: 400;
-  font-size: 12px;
-}
+.admin-sub { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+.admin-hint { color: var(--muted); font-size: 13px; margin-top: 16px; }
+.admin-hint-inline { color: var(--muted); font-weight: 400; font-size: 12px; }
 .admin-list {
   color: var(--text);
   font-size: 14px;
@@ -167,35 +140,12 @@ body.admin-modal-open { overflow: hidden; }
   transition: border-color 0.15s, background 0.15s;
   font-family: var(--font-body);
 }
-.env-option:hover {
-  border-color: var(--accent);
-  background: var(--panel-2);
-}
-.env-option.active {
-  border-color: var(--accent);
-  background: rgba(74, 222, 128, 0.08);
-}
-.env-option-icon {
-  font-size: 22px;
-  line-height: 1;
-  margin-top: 2px;
-}
-.env-option-body {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-.env-option-body strong {
-  font-size: 15px;
-  color: var(--text);
-  font-weight: 700;
-}
-.env-option-body small {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.5;
-}
+.env-option:hover { border-color: var(--accent); background: var(--panel-2); }
+.env-option.active { border-color: var(--accent); background: rgba(74, 222, 128, 0.08); }
+.env-option-icon { font-size: 22px; line-height: 1; margin-top: 2px; }
+.env-option-body { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.env-option-body strong { font-size: 15px; color: var(--text); font-weight: 700; }
+.env-option-body small { font-size: 12px; color: var(--muted); line-height: 1.5; }
 .env-option-body code {
   font-size: 11px;
   background: rgba(0, 0, 0, 0.3);
@@ -244,11 +194,7 @@ body.admin-modal-open { overflow: hidden; }
 }
 .admin-form input::placeholder { color: #4b5563; }
 
-.admin-row-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
+.admin-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .admin-fieldset {
   border: 1px solid var(--border);
@@ -264,18 +210,9 @@ body.admin-modal-open { overflow: hidden; }
   text-transform: uppercase;
   padding: 0 8px;
 }
-.admin-row-etapas {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.admin-row-etapas label {
-  font-size: 11px;
-}
-.admin-row-etapas select {
-  padding: 8px 10px;
-  font-size: 13px;
-}
+.admin-row-etapas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.admin-row-etapas label { font-size: 11px; }
+.admin-row-etapas select { padding: 8px 10px; font-size: 13px; }
 
 .admin-err {
   background: rgba(248, 113, 113, 0.1);
@@ -289,6 +226,111 @@ body.admin-modal-open { overflow: hidden; }
   font-weight: 500;
 }
 
+/* ==============================================================
+   Combobox buscable (v4 · Catálogos)
+   ============================================================== */
+.admin-combo {
+  position: relative;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.admin-combo-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  transition: border-color 0.15s;
+}
+.admin-combo-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.admin-combo-input::placeholder { color: #4b5563; }
+
+.admin-combo-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #1c2230;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 20;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  animation: comboFade 0.12s ease-out;
+}
+@keyframes comboFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.admin-combo-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+.admin-combo-list li {
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+  transition: background 0.1s;
+}
+.admin-combo-list li:hover,
+.admin-combo-list li.selected {
+  background: rgba(74, 222, 128, 0.1);
+  color: var(--accent);
+}
+
+.admin-combo-empty {
+  padding: 12px 14px;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: italic;
+  text-align: center;
+  margin: 0;
+}
+
+.admin-combo-create {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(74, 222, 128, 0.08);
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+.admin-combo-create:hover:not(:disabled) {
+  background: rgba(74, 222, 128, 0.18);
+}
+.admin-combo-create strong {
+  color: var(--text);
+  font-weight: 700;
+}
+.admin-combo-create:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-combo-panel::-webkit-scrollbar { width: 8px; }
+.admin-combo-panel::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
 /* -------- Botones del modal -------- */
 .admin-actions {
   display: flex;
@@ -296,9 +338,7 @@ body.admin-modal-open { overflow: hidden; }
   justify-content: flex-end;
   margin-top: 8px;
 }
-.admin-actions.with-delete {
-  justify-content: space-between;
-}
+.admin-actions.with-delete { justify-content: space-between; }
 .admin-btn {
   padding: 10px 18px;
   border: 1px solid transparent;
@@ -336,16 +376,9 @@ body.admin-modal-open { overflow: hidden; }
 
 /* -------- Responsive -------- */
 @media (max-width: 520px) {
-  .topbar {
-    top: 10px;
-    right: 10px;
-    gap: 6px;
-  }
+  .topbar { top: 10px; right: 10px; gap: 6px; }
   .admin-toggle,
-  .env-toggle {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
+  .env-toggle { padding: 6px 10px; font-size: 12px; }
   .admin-toggle-label,
   .env-toggle-label { display: none; }
   .admin-modal { padding: 20px; }

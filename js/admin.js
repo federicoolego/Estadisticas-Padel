@@ -1,9 +1,14 @@
-// ===== Módulo Administrador + Switch de entorno =====
+// ===== Módulo Administrador + Switch de entorno (v4) =====
 // El switch de entorno (Local ↔ Producción) siempre está activo.
 // El resto (auth y ABM) solo se activa cuando APP_ENV.isProd === true.
 //
-// Tras cualquier ABM hace location.reload() para garantizar consistencia total
-// (más simple y confiable que sincronizar los estados internos de cada módulo).
+// v4: formularios con comboboxes buscables sobre los catálogos normalizados.
+// - Canchas, formatos, jugadores, organizadores, categorías se cargan una vez
+//   por sesión (cache en memoria) y alimentan los combos.
+// - Cada combo permite "+ Crear nuevo" inline: inserta el registro en el catálogo
+//   correspondiente y lo selecciona automáticamente.
+// - El compañero, rival 1, rival 2 y compañero de torneo comparten el mismo
+//   catálogo `jugadores` — crear en uno actualiza los demás combos abiertos.
 
 (function () {
   "use strict";
@@ -75,14 +80,14 @@
       btn.addEventListener("click", () => {
         const target = btn.dataset.env;
         if ((target === "prod") === IS_PROD) { closeModal(); return; }
-        window.APP_ENV.setMode(target); // hace location.reload()
+        window.APP_ENV.setMode(target);
       });
     });
     modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
   }
 
   // ====================================================================
-  //   Modal helpers (compartidos entre env, login y ABM)
+  //   Modal helpers
   // ====================================================================
   function closeModal() {
     modalRoot.innerHTML = "";
@@ -102,8 +107,12 @@
     });
     document.addEventListener("keydown", escToClose);
   }
-  function escToClose(e) {
-    if (e.key === "Escape") closeModal();
+  function escToClose(e) { if (e.key === "Escape") closeModal(); }
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
   // ====================================================================
@@ -116,8 +125,6 @@
     return;
   }
 
-  const MESES_LARGOS = ["", "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
   const DIAS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
   // ---------- Sesión ----------
@@ -208,17 +215,196 @@
     });
   }
 
-  // ---------- Botones "Nuevo" ----------
-  document.addEventListener("click", (e) => {
+  // ====================================================================
+  //   Catálogos: cache en memoria + creación inline
+  // ====================================================================
+  const catalogCache = {
+    canchas: null, formatos: null, jugadores: null,
+    organizadores: null, categorias: null
+  };
+
+  async function ensureCatalogs() {
+    if (catalogCache.canchas) return; // ya cargados
+    const [canchas, formatos, jugadores, organizadores, categorias] = await Promise.all([
+      window.sb.from("canchas").select("id, nombre").order("nombre"),
+      window.sb.from("formatos").select("id, nombre").order("nombre"),
+      window.sb.from("jugadores").select("id, nombre").order("nombre"),
+      window.sb.from("organizadores").select("id, nombre").order("nombre"),
+      window.sb.from("categorias").select("id, nombre").order("nombre"),
+    ]);
+    const results = { canchas, formatos, jugadores, organizadores, categorias };
+    for (const [name, res] of Object.entries(results)) {
+      if (res.error) throw new Error(`No se pudo cargar ${name}: ${res.error.message}`);
+      catalogCache[name] = res.data || [];
+    }
+  }
+
+  async function createCatalogItem(catalogName, nombre) {
+    const clean = nombre.trim();
+    if (!clean) throw new Error("El nombre no puede estar vacío.");
+    const { data, error } = await window.sb
+      .from(catalogName)
+      .insert({ nombre: clean })
+      .select("id, nombre")
+      .single();
+    if (error) {
+      if (error.code === "23505") throw new Error(`"${clean}" ya existe en ${catalogName}.`);
+      throw new Error(error.message);
+    }
+    // Insertar ordenado en el cache
+    const arr = catalogCache[catalogName];
+    arr.push(data);
+    arr.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    return data;
+  }
+
+  // ====================================================================
+  //   Combobox buscable con "+ Crear nuevo"
+  // ====================================================================
+  // Uso:
+  //   const combo = makeCombo({
+  //     container: <div>, catalog: "jugadores",
+  //     initialId: 42, name: "companiero_id",
+  //     canCreate: true
+  //   });
+  //   combo.getValue() => { id, nombre } | null
+
+  let comboSeq = 0;
+  function comboSkeleton(hiddenName, placeholder) {
+    comboSeq++;
+    return `
+      <div class="admin-combo" data-combo-id="c${comboSeq}">
+        <input type="text" class="admin-combo-input" placeholder="${placeholder}" autocomplete="off">
+        <input type="hidden" name="${hiddenName}" value="">
+        <div class="admin-combo-panel" hidden>
+          <ul class="admin-combo-list"></ul>
+          <button type="button" class="admin-combo-create" hidden>
+            ➕ Crear "<strong></strong>"
+          </button>
+          <p class="admin-combo-empty" hidden>No hay coincidencias.</p>
+        </div>
+      </div>`;
+  }
+
+  function makeCombo({ container, catalog, initialId, canCreate = true }) {
+    const items = catalogCache[catalog];
+    const input = container.querySelector(".admin-combo-input");
+    const hidden = container.querySelector('input[type="hidden"]');
+    const panel = container.querySelector(".admin-combo-panel");
+    const list = container.querySelector(".admin-combo-list");
+    const createBtn = container.querySelector(".admin-combo-create");
+    const emptyMsg = container.querySelector(".admin-combo-empty");
+    if (!canCreate) createBtn.style.display = "none";
+
+    // Valor inicial (modo edición)
+    if (initialId) {
+      const found = items.find(x => x.id === initialId);
+      if (found) {
+        input.value = found.nombre;
+        hidden.value = String(found.id);
+      }
+    }
+
+    function currentTextMatches(item) {
+      return item && input.value.trim().toLowerCase() === item.nombre.toLowerCase();
+    }
+
+    function renderList() {
+      const q = input.value.trim().toLowerCase();
+      const filtered = q
+        ? items.filter(x => x.nombre.toLowerCase().includes(q))
+        : items;
+      list.innerHTML = filtered
+        .map(x => `<li data-id="${x.id}" class="${String(x.id) === hidden.value ? "selected" : ""}">${escapeHtml(x.nombre)}</li>`)
+        .join("");
+      emptyMsg.hidden = filtered.length > 0 || !!q;
+      const exact = q && items.some(x => x.nombre.toLowerCase() === q);
+      if (canCreate && q && !exact) {
+        createBtn.querySelector("strong").textContent = input.value.trim();
+        createBtn.hidden = false;
+      } else {
+        createBtn.hidden = true;
+      }
+    }
+
+    function open() { panel.hidden = false; renderList(); }
+    function close() { panel.hidden = true; }
+
+    // Al escribir, invalidamos el ID seleccionado hasta que se elija de la lista o se cree
+    input.addEventListener("focus", open);
+    input.addEventListener("input", () => {
+      hidden.value = "";
+      open();
+    });
+    // Cerrar al perder foco (delay para permitir click en items/botón)
+    input.addEventListener("blur", () => {
+      setTimeout(() => {
+        // Si el texto no matchea exactamente ninguna opción, limpiamos el hidden y el input
+        const q = input.value.trim().toLowerCase();
+        const exact = items.find(x => x.nombre.toLowerCase() === q);
+        if (exact) {
+          input.value = exact.nombre;
+          hidden.value = String(exact.id);
+        } else if (!hidden.value) {
+          input.value = "";
+        }
+        close();
+      }, 180);
+    });
+
+    list.addEventListener("mousedown", (e) => {
+      const li = e.target.closest("li");
+      if (!li) return;
+      const id = Number(li.dataset.id);
+      const item = items.find(x => x.id === id);
+      if (!item) return;
+      input.value = item.nombre;
+      hidden.value = String(item.id);
+      close();
+    });
+
+    createBtn.addEventListener("mousedown", async (e) => {
+      e.preventDefault();
+      const nombre = input.value.trim();
+      if (!nombre) return;
+      createBtn.disabled = true;
+      const strong = createBtn.querySelector("strong");
+      const originalTxt = strong.textContent;
+      strong.textContent = "creando…";
+      try {
+        const newItem = await createCatalogItem(catalog, nombre);
+        input.value = newItem.nombre;
+        hidden.value = String(newItem.id);
+        close();
+      } catch (err) {
+        alert("Error al crear: " + err.message);
+        strong.textContent = originalTxt;
+      } finally {
+        createBtn.disabled = false;
+      }
+    });
+
+    renderList();
+
+    return {
+      getValue: () => hidden.value ? { id: Number(hidden.value), nombre: input.value } : null,
+      getId: () => hidden.value ? Number(hidden.value) : null,
+      focus: () => input.focus()
+    };
+  }
+
+  // ====================================================================
+  //   Handlers de botones "Nuevo" y click en filas
+  // ====================================================================
+  document.addEventListener("click", async (e) => {
     const btn = e.target.closest(".admin-new-btn");
     if (!btn) return;
     if (!document.body.classList.contains("is-admin")) return;
     const kind = btn.dataset.new;
-    if (kind === "partido") openPartidoForm();
-    if (kind === "torneo") openTorneoForm();
+    if (kind === "partido") await openPartidoForm();
+    if (kind === "torneo") await openTorneoForm();
   });
 
-  // ---------- Click en filas de las tablas → editar ----------
   document.addEventListener("click", async (e) => {
     if (!document.body.classList.contains("is-admin")) return;
     const tr = e.target.closest("tr[data-id]");
@@ -226,33 +412,62 @@
     const tbody = tr.parentElement;
     const id = Number(tr.dataset.id);
     if (tbody.id === "tabla-body") {
-      const { data, error } = await window.sb.from("partidos").select("*").eq("id", id).single();
+      // Leemos de partidos_view para tener IDs Y strings
+      const { data, error } = await window.sb.from("partidos_view").select("*").eq("id", id).single();
       if (error) return alert("No se pudo cargar el partido: " + error.message);
-      openPartidoForm(data);
+      await openPartidoForm(data);
     } else if (tbody.id === "t-tabla-body") {
-      const { data, error } = await window.sb.from("torneos").select("*").eq("id", id).single();
+      const { data, error } = await window.sb.from("torneos_view").select("*").eq("id", id).single();
       if (error) return alert("No se pudo cargar el torneo: " + error.message);
-      openTorneoForm(data);
+      await openTorneoForm(data);
     }
   });
 
-  // ---------- Helpers ----------
+  // ====================================================================
+  //   Helpers
+  // ====================================================================
   function deriveFromDate(fechaStr) {
     const [y, mo, d] = fechaStr.split("-").map(Number);
     const dt = new Date(Date.UTC(y, mo - 1, d, 12));
-    const diaNum = dt.getUTCDay();
-    return { anio: y, mes: mo, dia: DIAS_ES[diaNum] };
-  }
-  function escapeHtml(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    return { anio: y, mes: mo, dia: DIAS_ES[dt.getUTCDay()] };
   }
 
-  // ---------- Formulario PARTIDO ----------
-  function openPartidoForm(record) {
+  async function withLoadingModal(fn) {
+    openModal(`
+      <h2 class="admin-title">Cargando…</h2>
+      <p class="admin-sub">Preparando el formulario.</p>
+    `);
+    try { await fn(); }
+    catch (e) {
+      openModal(`
+        <h2 class="admin-title">Error</h2>
+        <p class="admin-err">${escapeHtml(e.message)}</p>
+        <div class="admin-actions">
+          <button type="button" class="admin-btn primary" data-close>Cerrar</button>
+        </div>
+      `);
+      modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
+    }
+  }
+
+  // ====================================================================
+  //   Formulario PARTIDO
+  // ====================================================================
+  async function openPartidoForm(record) {
+    await withLoadingModal(async () => {
+      await ensureCatalogs();
+      renderPartidoForm(record);
+    });
+  }
+
+  function renderPartidoForm(record) {
     const isEdit = !!record;
-    const r = record || { fecha: "", cancha: "", formato: "", companiero: "", rivales: "", resultado: "PG" };
+    const r = record || {
+      fecha: "", resultado: "PG",
+      cancha_id: null, formato_id: null, companiero_id: null,
+      rival1_id: null, rival2_id: null
+    };
+
     openModal(`
       <h2 class="admin-title">${isEdit ? "Editar partido #" + r.id : "Nuevo partido"}</h2>
       <form id="admin-partido-form" class="admin-form">
@@ -260,19 +475,14 @@
           <input type="date" name="fecha" required value="${escapeHtml(r.fecha)}">
         </label>
         <div class="admin-row-2">
-          <label>Cancha
-            <input type="text" name="cancha" required value="${escapeHtml(r.cancha)}" placeholder="Ej: NODO">
-          </label>
-          <label>Formato
-            <input type="text" name="formato" required value="${escapeHtml(r.formato)}" placeholder="Ej: TURNO">
-          </label>
+          <label>Cancha ${comboSkeleton("cancha_id", "Buscar cancha…")}</label>
+          <label>Formato ${comboSkeleton("formato_id", "Buscar formato…")}</label>
         </div>
-        <label>Compañero
-          <input type="text" name="companiero" required value="${escapeHtml(r.companiero)}">
-        </label>
-        <label>Rivales <span class="admin-hint-inline">(dos jugadores separados por " - ")</span>
-          <input type="text" name="rivales" required value="${escapeHtml(r.rivales)}" placeholder="Nombre1 - Nombre2">
-        </label>
+        <label>Compañero ${comboSkeleton("companiero_id", "Buscar jugador…")}</label>
+        <div class="admin-row-2">
+          <label>Rival 1 ${comboSkeleton("rival1_id", "Buscar jugador…")}</label>
+          <label>Rival 2 ${comboSkeleton("rival2_id", "Buscar jugador…")}</label>
+        </div>
         <label>Resultado
           <select name="resultado" required>
             <option value="PG" ${r.resultado === "PG" ? "selected" : ""}>✅ Ganado (PG)</option>
@@ -287,23 +497,67 @@
         </div>
       </form>
     `);
+
+    const form = $("#admin-partido-form");
+    const combos = {
+      cancha:     makeCombo({ container: form.querySelectorAll(".admin-combo")[0], catalog: "canchas",   initialId: r.cancha_id }),
+      formato:    makeCombo({ container: form.querySelectorAll(".admin-combo")[1], catalog: "formatos",  initialId: r.formato_id }),
+      companiero: makeCombo({ container: form.querySelectorAll(".admin-combo")[2], catalog: "jugadores", initialId: r.companiero_id }),
+      rival1:     makeCombo({ container: form.querySelectorAll(".admin-combo")[3], catalog: "jugadores", initialId: r.rival1_id }),
+      rival2:     makeCombo({ container: form.querySelectorAll(".admin-combo")[4], catalog: "jugadores", initialId: r.rival2_id }),
+    };
+
     modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
-    $("#admin-partido-form").addEventListener("submit", async (e) => {
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const fd = new FormData(e.target);
+      const err = $("#admin-partido-err");
+      err.hidden = true;
+
+      const fd = new FormData(form);
       const fecha = fd.get("fecha");
+      const resultado = fd.get("resultado");
+      const canchaId = combos.cancha.getId();
+      const formatoId = combos.formato.getId();
+      const companieroId = combos.companiero.getId();
+      const rival1Id = combos.rival1.getId();
+      const rival2Id = combos.rival2.getId();
+
+      // Validaciones
+      const missing = [];
+      if (!canchaId) missing.push("Cancha");
+      if (!formatoId) missing.push("Formato");
+      if (!companieroId) missing.push("Compañero");
+      if (!rival1Id) missing.push("Rival 1");
+      if (!rival2Id) missing.push("Rival 2");
+      if (missing.length) {
+        err.textContent = "Faltan campos: " + missing.join(", ") + ". Elegí una opción de la lista o creá una nueva.";
+        err.hidden = false;
+        return;
+      }
+      if (rival1Id === rival2Id) {
+        err.textContent = "Rival 1 y Rival 2 no pueden ser el mismo jugador.";
+        err.hidden = false;
+        return;
+      }
+      if (companieroId === rival1Id || companieroId === rival2Id) {
+        err.textContent = "El compañero no puede ser también rival.";
+        err.hidden = false;
+        return;
+      }
+
       const { anio, mes, dia } = deriveFromDate(fecha);
       const payload = {
-        fecha,
-        anio, mes, dia,
-        cancha: (fd.get("cancha") || "").trim().toUpperCase(),
-        formato: (fd.get("formato") || "").trim().toUpperCase(),
-        companiero: (fd.get("companiero") || "").trim(),
-        rivales: (fd.get("rivales") || "").trim(),
-        resultado: fd.get("resultado")
+        fecha, anio, mes, dia, resultado,
+        cancha_id: canchaId,
+        formato_id: formatoId,
+        companiero_id: companieroId,
+        rival1_id: rival1Id,
+        rival2_id: rival2Id
       };
-      await submitRecord("partidos", isEdit ? r.id : null, payload, "#admin-partido-err", e.target);
+      await submitRecord("partidos", isEdit ? r.id : null, payload, "#admin-partido-err", form);
     });
+
     if (isEdit) {
       $("#admin-partido-del").addEventListener("click", async () => {
         if (!confirm(`¿Eliminar el partido #${r.id}? Esta acción no se puede deshacer.`)) return;
@@ -312,11 +566,20 @@
     }
   }
 
-  // ---------- Formulario TORNEO ----------
+  // ====================================================================
+  //   Formulario TORNEO
+  // ====================================================================
+  async function openTorneoForm(record) {
+    await withLoadingModal(async () => {
+      await ensureCatalogs();
+      renderTorneoForm(record);
+    });
+  }
+
   function triSelect(name, val) {
     const opts = [
-      { v: "",     label: "— No jugó" },
-      { v: "true", label: "✅ Ganó" },
+      { v: "",      label: "— No jugó" },
+      { v: "true",  label: "✅ Ganó" },
       { v: "false", label: "❌ Perdió" }
     ];
     const cur = val === true ? "true" : val === false ? "false" : "";
@@ -325,12 +588,13 @@
     ).join("")}</select>`;
   }
 
-  function openTorneoForm(record) {
+  function renderTorneoForm(record) {
     const isEdit = !!record;
     const r = record || {
-      fecha: "", organizador: "", companiero: "", categoria: "",
+      fecha: "", organizador_id: null, categoria_id: null, companiero_id: null,
       zona: null, octavos: null, cuartos: null, semifinal: null, final: null, puesto: null
     };
+
     openModal(`
       <h2 class="admin-title">${isEdit ? "Editar torneo #" + r.id : "Nuevo torneo"}</h2>
       <form id="admin-torneo-form" class="admin-form">
@@ -338,16 +602,10 @@
           <input type="date" name="fecha" required value="${escapeHtml(r.fecha)}">
         </label>
         <div class="admin-row-2">
-          <label>Organizador
-            <input type="text" name="organizador" required value="${escapeHtml(r.organizador)}" placeholder="Ej: NODO">
-          </label>
-          <label>Categoría
-            <input type="text" name="categoria" required value="${escapeHtml(r.categoria)}" placeholder="Ej: 8va, +13">
-          </label>
+          <label>Organizador ${comboSkeleton("organizador_id", "Buscar organizador…")}</label>
+          <label>Categoría ${comboSkeleton("categoria_id", "Buscar categoría…")}</label>
         </div>
-        <label>Compañero
-          <input type="text" name="companiero" required value="${escapeHtml(r.companiero)}">
-        </label>
+        <label>Compañero ${comboSkeleton("companiero_id", "Buscar jugador…")}</label>
 
         <fieldset class="admin-fieldset">
           <legend>Etapas jugadas</legend>
@@ -377,12 +635,37 @@
         </div>
       </form>
     `);
+
+    const form = $("#admin-torneo-form");
+    const combos = {
+      organizador: makeCombo({ container: form.querySelectorAll(".admin-combo")[0], catalog: "organizadores", initialId: r.organizador_id }),
+      categoria:   makeCombo({ container: form.querySelectorAll(".admin-combo")[1], catalog: "categorias",    initialId: r.categoria_id }),
+      companiero:  makeCombo({ container: form.querySelectorAll(".admin-combo")[2], catalog: "jugadores",     initialId: r.companiero_id }),
+    };
+
     modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
-    $("#admin-torneo-form").addEventListener("submit", async (e) => {
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const fd = new FormData(e.target);
+      const err = $("#admin-torneo-err");
+      err.hidden = true;
+
+      const fd = new FormData(form);
       const fecha = fd.get("fecha");
-      const { anio, mes, dia } = deriveFromDate(fecha);
+      const organizadorId = combos.organizador.getId();
+      const categoriaId = combos.categoria.getId();
+      const companieroId = combos.companiero.getId();
+
+      const missing = [];
+      if (!organizadorId) missing.push("Organizador");
+      if (!categoriaId) missing.push("Categoría");
+      if (!companieroId) missing.push("Compañero");
+      if (missing.length) {
+        err.textContent = "Faltan campos: " + missing.join(", ") + ". Elegí una opción de la lista o creá una nueva.";
+        err.hidden = false;
+        return;
+      }
+
       const tri = (name) => {
         const v = fd.get(name);
         if (v === "true") return true;
@@ -390,12 +673,12 @@
         return null;
       };
       const puestoRaw = fd.get("puesto");
+      const { anio, mes, dia } = deriveFromDate(fecha);
       const payload = {
-        fecha,
-        anio, mes, dia,
-        organizador: (fd.get("organizador") || "").trim().toUpperCase(),
-        categoria: (fd.get("categoria") || "").trim(),
-        companiero: (fd.get("companiero") || "").trim(),
+        fecha, anio, mes, dia,
+        organizador_id: organizadorId,
+        categoria_id: categoriaId,
+        companiero_id: companieroId,
         zona: tri("zona"),
         octavos: tri("octavos"),
         cuartos: tri("cuartos"),
@@ -403,8 +686,9 @@
         final: tri("final"),
         puesto: puestoRaw || null
       };
-      await submitRecord("torneos", isEdit ? r.id : null, payload, "#admin-torneo-err", e.target);
+      await submitRecord("torneos", isEdit ? r.id : null, payload, "#admin-torneo-err", form);
     });
+
     if (isEdit) {
       $("#admin-torneo-del").addEventListener("click", async () => {
         if (!confirm(`¿Eliminar el torneo #${r.id}? Esta acción no se puede deshacer.`)) return;
@@ -413,7 +697,9 @@
     }
   }
 
-  // ---------- Submit genérico ----------
+  // ====================================================================
+  //   Submit genérico
+  // ====================================================================
   async function submitRecord(table, id, payload, errSel, form) {
     const err = $(errSel);
     err.hidden = true;
