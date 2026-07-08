@@ -79,7 +79,7 @@ header.hero {
   padding: 18px;
   margin-bottom: 28px;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
 }
 .filters .field { display: flex; flex-direction: column; gap: 6px; }
@@ -196,8 +196,8 @@ header.hero {
 .combo-empty { padding: 10px; color: var(--muted); font-size: 13px; }
 
 .filters .reset {
-  grid-column: span 6;
-  justify-self: start;
+  align-self: end;
+  justify-self: stretch;
   background: transparent;
   border: 1px solid var(--border);
   color: var(--muted);
@@ -380,7 +380,6 @@ footer {
 @media (max-width: 1000px) {
   .kpis-main, .kpis-streak { grid-template-columns: repeat(3, 1fr); }
   .filters { grid-template-columns: repeat(3, 1fr); }
-  .filters .reset { grid-column: span 3; }
   .grid { grid-template-columns: 1fr; }
   .card.full { grid-column: span 1; }
 }
@@ -394,14 +393,14 @@ footer {
   .kpi { padding: 16px 14px; }
   .kpi .value { font-size: 36px; }
   .filters { grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px; }
-  .filters .reset { grid-column: span 2; width: 100%; text-align: center; }
+  .filters .reset { grid-column: span 2; justify-self: stretch; text-align: center; }
   .card { padding: 16px 14px; }
   .chart-box, .chart-box.tall { height: 300px; }
 }
 @media (max-width: 400px) {
   .kpis { grid-template-columns: 1fr; }
   .filters { grid-template-columns: 1fr; }
-  .filters .reset { grid-column: span 1; }
+  .filters .reset { grid-column: span 1; justify-self: stretch; }
   .hero h1 { font-size: 30px; }
 }
 
