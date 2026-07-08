@@ -2446,5 +2446,17 @@
     "rivales": "Belen Pacchioni - Gallo Pucheta",
     "resultado": "PG",
     "dia": "Domingo"
+  },
+  {
+    "id": 205,
+    "fecha": "2026-07-07",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Gonzalo Mendoza - Lucho Vitali",
+    "resultado": "PG",
+    "dia": "Martes"
   }
 ]
