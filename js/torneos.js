@@ -32,8 +32,14 @@
     if (initialized) return;
     initialized = true;
     try {
-      const res = await fetch("data/torneos.json");
-      ALL = await res.json();
+      //const res = await fetch("data/torneos.json");
+      //ALL = await res.json();
+      const { data, error } = await sb
+  .from('torneos')
+  .select('*')
+  .order('id', { ascending: true });
+if (error) throw error;
+ALL = data;
     } catch (e) {
       const cont = document.getElementById("tab-torneos");
       if (cont) cont.innerHTML =
