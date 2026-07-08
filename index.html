@@ -13,11 +13,17 @@
 </head>
 <body>
 
-  <!-- Botón admin flotante (arriba a la derecha) -->
-  <button id="admin-toggle" class="admin-toggle" aria-label="Modo administrador" title="Modo administrador">
-    <span class="admin-toggle-icon">🔒</span>
-    <span class="admin-toggle-label">Admin</span>
-  </button>
+  <!-- Barra de controles arriba a la derecha -->
+  <div class="topbar">
+    <button id="env-toggle" class="env-toggle" aria-label="Cambiar entorno" title="Cambiar entorno">
+      <span class="env-toggle-icon">🖥️</span>
+      <span class="env-toggle-label">Local</span>
+    </button>
+    <button id="admin-toggle" class="admin-toggle" aria-label="Modo administrador" title="Modo administrador">
+      <span class="admin-toggle-icon">🔒</span>
+      <span class="admin-toggle-label">Admin</span>
+    </button>
+  </div>
 
   <div class="wrap">
 
@@ -239,15 +245,17 @@
     </svg>
   </button>
 
-  <!-- Contenedor de modales admin (lo llena admin.js) -->
+  <!-- Contenedor de modales admin/env (lo llena admin.js) -->
   <div id="admin-modal-root"></div>
 
-  <!-- Supabase SDK + cliente -->
+  <!-- 1) Switch de entorno + SDK de Supabase (siempre cargado, liviano) + cliente condicional -->
+  <script src="js/env.js?v=1"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-client.js?v=1"></script>
 
+  <!-- 2) App -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="js/app.js?v=4"></script>
+  <script src="js/partidos.js?v=1"></script>
   <script src="js/torneos.js?v=2"></script>
   <script src="js/admin.js?v=1"></script>
   <script>
