@@ -32,18 +32,14 @@
     if (initialized) return;
     initialized = true;
     try {
-      //const res = await fetch("data/torneos.json");
-      //ALL = await res.json();
-      const { data, error } = await sb
-  .from('torneos')
-  .select('*')
-  .order('id', { ascending: true });
-if (error) throw error;
-ALL = data;
+      ALL = await window.APP_ENV.loadTable("torneos");
     } catch (e) {
+      console.error("Error cargando torneos:", e);
+      const envMsg = window.APP_ENV && window.APP_ENV.isProd
+        ? "No se pudieron cargar los torneos desde Supabase. Revisá la consola."
+        : 'No se pudo cargar data/torneos.json. Si abriste el archivo directamente, servilo con un servidor local (ej: <code>python -m http.server</code>).';
       const cont = document.getElementById("tab-torneos");
-      if (cont) cont.innerHTML =
-        '<p class="empty">No se pudo cargar data/torneos.json. Si abriste el archivo directamente, servilo con un servidor local (ej: <code>python -m http.server</code>).</p>';
+      if (cont) cont.innerHTML = `<p class="empty">${envMsg}</p>`;
       return;
     }
     buildFilterOptions();
@@ -284,7 +280,7 @@ ALL = data;
       if (t.puesto === "campeon") puestoBadge = '<span class="badge b-gold">🥇 Campeón</span>';
       else if (t.puesto === "subcampeon") puestoBadge = '<span class="badge b-silver">🥈 Subcamp.</span>';
       else if (t.puesto === "tercero") puestoBadge = '<span class="badge b-bronze">🥉 Tercero</span>';
-      return `<tr>
+      return `<tr data-id="${t.id}">
         <td class="c-num">${t.id}</td>
         <td>${d}/${mo}/${y}</td>
         <td>${t.organizador || "—"}</td>
