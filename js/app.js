@@ -11,8 +11,14 @@ const el = (id) => document.getElementById(id);
 
 async function init() {
   try {
-    const res = await fetch("data/partidos.json");
-    ALL = await res.json();
+    //const res = await fetch("data/partidos.json");
+    //ALL = await res.json();
+    const { data, error } = await sb
+  .from('partidos')
+  .select('*')
+  .order('id', { ascending: true });
+if (error) throw error;
+ALL = data;
   } catch (e) {
     document.querySelector(".wrap").innerHTML =
       '<p class="empty">No se pudo cargar data/partidos.json. Si abriste el archivo directamente, servilo con un servidor local (ej: <code>python -m http.server</code>).</p>';
