@@ -1,14 +1,5 @@
 // ===== Módulo Administrador + Switch de entorno (v4) =====
-// El switch de entorno (Local ↔ Producción) siempre está activo.
-// El resto (auth y ABM) solo se activa cuando APP_ENV.isProd === true.
-//
-// v4: formularios con comboboxes buscables sobre los catálogos normalizados.
-// - Canchas, formatos, jugadores, organizadores, categorías se cargan una vez
-//   por sesión (cache en memoria) y alimentan los combos.
-// - Cada combo permite "+ Crear nuevo" inline: inserta el registro en el catálogo
-//   correspondiente y lo selecciona automáticamente.
-// - El compañero, rival 1, rival 2 y compañero de torneo comparten el mismo
-//   catálogo `jugadores` — crear en uno actualiza los demás combos abiertos.
+// v4 final: catálogos normalizados + panel de gestión de catálogos con contador de uso.
 
 (function () {
   "use strict";
@@ -27,38 +18,33 @@
   // ====================================================================
   //   BLOQUE 1 · Switch de entorno (siempre activo)
   // ====================================================================
-
   function refreshEnvButton() {
     if (!envBtn) return;
     if (IS_PROD) {
       envIcon.textContent = "☁️";
       envLabel.textContent = "Producción";
       envBtn.title = "Entorno: Producción (Supabase) · click para cambiar";
-      envBtn.classList.add("prod");
-      envBtn.classList.remove("local");
+      envBtn.classList.add("prod"); envBtn.classList.remove("local");
     } else {
       envIcon.textContent = "🖥️";
       envLabel.textContent = "Local";
       envBtn.title = "Entorno: Local (JSON estáticos, solo lectura) · click para cambiar";
-      envBtn.classList.add("local");
-      envBtn.classList.remove("prod");
+      envBtn.classList.add("local"); envBtn.classList.remove("prod");
     }
   }
   refreshEnvButton();
-
   if (envBtn) envBtn.addEventListener("click", openEnvModal);
 
   function openEnvModal() {
     openModal(`
       <h2 class="admin-title">Cambiar entorno</h2>
       <p class="admin-sub">Elegí desde qué fuente se cargan los datos.</p>
-
       <div class="env-options">
         <button type="button" class="env-option ${!IS_PROD ? "active" : ""}" data-env="local">
           <span class="env-option-icon">🖥️</span>
           <div class="env-option-body">
             <strong>Local</strong>
-            <small>Lee <code>data/partidos.json</code> y <code>data/torneos.json</code> del repo.<br>Solo lectura. Ideal si Supabase se cae o para trabajar offline.</small>
+            <small>Lee <code>data/partidos.json</code> y <code>data/torneos.json</code> del repo.<br>Solo lectura.</small>
           </div>
         </button>
         <button type="button" class="env-option ${IS_PROD ? "active" : ""}" data-env="prod">
@@ -69,9 +55,7 @@
           </div>
         </button>
       </div>
-
       <p class="admin-hint">Al cambiar el entorno la página se recarga automáticamente.</p>
-
       <div class="admin-actions">
         <button type="button" class="admin-btn ghost" data-close>Cerrar</button>
       </div>
@@ -94,10 +78,10 @@
     document.body.classList.remove("admin-modal-open");
     document.removeEventListener("keydown", escToClose);
   }
-  function openModal(html) {
+  function openModal(html, opts = {}) {
     modalRoot.innerHTML = `
       <div class="admin-backdrop">
-        <div class="admin-modal" role="dialog" aria-modal="true">
+        <div class="admin-modal ${opts.wide ? "wide" : ""}" role="dialog" aria-modal="true">
           ${html}
         </div>
       </div>`;
@@ -116,16 +100,21 @@
   }
 
   // ====================================================================
-  //   BLOQUE 2 · Auth + ABM (solo en modo Producción)
+  //   BLOQUE 2 · Auth + ABM (solo modo Producción)
   // ====================================================================
   if (!IS_PROD) return;
+  if (!window.sb) { console.warn("admin.js: modo Producción sin cliente Supabase."); return; }
 
-  if (!window.sb) {
-    console.warn("admin.js: modo Producción sin cliente Supabase inicializado.");
-    return;
-  }
+  const DIAS_ES = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
 
-  const DIAS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  const CATALOGS = [
+    { key: "canchas",       singular: "cancha",      plural: "Canchas",       viewUso: "canchas_con_uso",       icon: "🏟️" },
+    { key: "formatos",      singular: "formato",     plural: "Formatos",      viewUso: "formatos_con_uso",      icon: "🎯" },
+    { key: "jugadores",     singular: "jugador",     plural: "Jugadores",     viewUso: "jugadores_con_uso",     icon: "👥" },
+    { key: "organizadores", singular: "organizador", plural: "Organizadores", viewUso: "organizadores_con_uso", icon: "🏛️" },
+    { key: "categorias",    singular: "categoría",   plural: "Categorías",    viewUso: "categorias_con_uso",    icon: "🏷️" },
+  ];
+  const CATALOG_BY_KEY = Object.fromEntries(CATALOGS.map(c => [c.key, c]));
 
   // ---------- Sesión ----------
   async function updateSessionUI() {
@@ -143,7 +132,6 @@
       toggleBtn.title = "Modo administrador";
     }
   }
-
   window.sb.auth.onAuthStateChange(() => updateSessionUI());
   updateSessionUI();
 
@@ -180,8 +168,7 @@
       const btn = e.target.querySelector('button[type="submit"]');
       btn.disabled = true; btn.textContent = "Entrando…";
       const { error } = await window.sb.auth.signInWithPassword({
-        email: fd.get("email"),
-        password: fd.get("password")
+        email: fd.get("email"), password: fd.get("password")
       });
       if (error) {
         err.textContent = "No se pudo iniciar sesión. Revisá email y contraseña.";
@@ -202,10 +189,14 @@
       <ul class="admin-list">
         <li>Usar los botones <strong>➕ Nuevo</strong> en cada pestaña.</li>
         <li>Click en cualquier <strong>fila de la tabla</strong> para editar o eliminar.</li>
+        <li>Gestionar los <strong>catálogos</strong> (canchas, jugadores, formatos, etc.).</li>
       </ul>
-      <div class="admin-actions">
+      <div class="admin-actions with-delete">
         <button type="button" class="admin-btn danger" id="admin-logout">Cerrar sesión</button>
-        <button type="button" class="admin-btn primary" data-close>Listo</button>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="admin-btn ghost" id="admin-open-catalogs">⚙️ Catálogos</button>
+          <button type="button" class="admin-btn primary" data-close>Listo</button>
+        </div>
       </div>
     `);
     modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
@@ -213,10 +204,11 @@
       await window.sb.auth.signOut();
       closeModal();
     });
+    $("#admin-open-catalogs").addEventListener("click", () => openCatalogsModal());
   }
 
   // ====================================================================
-  //   Catálogos: cache en memoria + creación inline
+  //   Catálogos: cache en memoria + CRUD helpers
   // ====================================================================
   const catalogCache = {
     canchas: null, formatos: null, jugadores: null,
@@ -224,7 +216,7 @@
   };
 
   async function ensureCatalogs() {
-    if (catalogCache.canchas) return; // ya cargados
+    if (catalogCache.canchas) return;
     const [canchas, formatos, jugadores, organizadores, categorias] = await Promise.all([
       window.sb.from("canchas").select("id, nombre").order("nombre"),
       window.sb.from("formatos").select("id, nombre").order("nombre"),
@@ -243,32 +235,47 @@
     const clean = nombre.trim();
     if (!clean) throw new Error("El nombre no puede estar vacío.");
     const { data, error } = await window.sb
-      .from(catalogName)
-      .insert({ nombre: clean })
-      .select("id, nombre")
-      .single();
+      .from(catalogName).insert({ nombre: clean }).select("id, nombre").single();
     if (error) {
       if (error.code === "23505") throw new Error(`"${clean}" ya existe en ${catalogName}.`);
       throw new Error(error.message);
     }
-    // Insertar ordenado en el cache
     const arr = catalogCache[catalogName];
     arr.push(data);
     arr.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
     return data;
   }
 
+  async function updateCatalogItem(catalogName, id, nombre) {
+    const clean = nombre.trim();
+    if (!clean) throw new Error("El nombre no puede estar vacío.");
+    const { data, error } = await window.sb
+      .from(catalogName).update({ nombre: clean }).eq("id", id).select("id, nombre").single();
+    if (error) {
+      if (error.code === "23505") throw new Error(`"${clean}" ya existe en ${catalogName}.`);
+      throw new Error(error.message);
+    }
+    const arr = catalogCache[catalogName];
+    const idx = arr.findIndex(x => x.id === id);
+    if (idx >= 0) arr[idx] = data;
+    arr.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    return data;
+  }
+
+  async function deleteCatalogItem(catalogName, id) {
+    const { error } = await window.sb.from(catalogName).delete().eq("id", id);
+    if (error) {
+      if (error.code === "23503") throw new Error("No se puede eliminar: está en uso.");
+      throw new Error(error.message);
+    }
+    const arr = catalogCache[catalogName];
+    const idx = arr.findIndex(x => x.id === id);
+    if (idx >= 0) arr.splice(idx, 1);
+  }
+
   // ====================================================================
   //   Combobox buscable con "+ Crear nuevo"
   // ====================================================================
-  // Uso:
-  //   const combo = makeCombo({
-  //     container: <div>, catalog: "jugadores",
-  //     initialId: 42, name: "companiero_id",
-  //     canCreate: true
-  //   });
-  //   combo.getValue() => { id, nombre } | null
-
   let comboSeq = 0;
   function comboSkeleton(hiddenName, placeholder) {
     comboSeq++;
@@ -296,24 +303,14 @@
     const emptyMsg = container.querySelector(".admin-combo-empty");
     if (!canCreate) createBtn.style.display = "none";
 
-    // Valor inicial (modo edición)
     if (initialId) {
       const found = items.find(x => x.id === initialId);
-      if (found) {
-        input.value = found.nombre;
-        hidden.value = String(found.id);
-      }
-    }
-
-    function currentTextMatches(item) {
-      return item && input.value.trim().toLowerCase() === item.nombre.toLowerCase();
+      if (found) { input.value = found.nombre; hidden.value = String(found.id); }
     }
 
     function renderList() {
       const q = input.value.trim().toLowerCase();
-      const filtered = q
-        ? items.filter(x => x.nombre.toLowerCase().includes(q))
-        : items;
+      const filtered = q ? items.filter(x => x.nombre.toLowerCase().includes(q)) : items;
       list.innerHTML = filtered
         .map(x => `<li data-id="${x.id}" class="${String(x.id) === hidden.value ? "selected" : ""}">${escapeHtml(x.nombre)}</li>`)
         .join("");
@@ -326,66 +323,43 @@
         createBtn.hidden = true;
       }
     }
-
     function open() { panel.hidden = false; renderList(); }
     function close() { panel.hidden = true; }
 
-    // Al escribir, invalidamos el ID seleccionado hasta que se elija de la lista o se cree
     input.addEventListener("focus", open);
-    input.addEventListener("input", () => {
-      hidden.value = "";
-      open();
-    });
-    // Cerrar al perder foco (delay para permitir click en items/botón)
+    input.addEventListener("input", () => { hidden.value = ""; open(); });
     input.addEventListener("blur", () => {
       setTimeout(() => {
-        // Si el texto no matchea exactamente ninguna opción, limpiamos el hidden y el input
         const q = input.value.trim().toLowerCase();
         const exact = items.find(x => x.nombre.toLowerCase() === q);
-        if (exact) {
-          input.value = exact.nombre;
-          hidden.value = String(exact.id);
-        } else if (!hidden.value) {
-          input.value = "";
-        }
+        if (exact) { input.value = exact.nombre; hidden.value = String(exact.id); }
+        else if (!hidden.value) { input.value = ""; }
         close();
       }, 180);
     });
-
     list.addEventListener("mousedown", (e) => {
-      const li = e.target.closest("li");
-      if (!li) return;
+      const li = e.target.closest("li"); if (!li) return;
       const id = Number(li.dataset.id);
-      const item = items.find(x => x.id === id);
-      if (!item) return;
-      input.value = item.nombre;
-      hidden.value = String(item.id);
-      close();
+      const item = items.find(x => x.id === id); if (!item) return;
+      input.value = item.nombre; hidden.value = String(item.id); close();
     });
-
     createBtn.addEventListener("mousedown", async (e) => {
       e.preventDefault();
-      const nombre = input.value.trim();
-      if (!nombre) return;
+      const nombre = input.value.trim(); if (!nombre) return;
       createBtn.disabled = true;
       const strong = createBtn.querySelector("strong");
       const originalTxt = strong.textContent;
       strong.textContent = "creando…";
       try {
         const newItem = await createCatalogItem(catalog, nombre);
-        input.value = newItem.nombre;
-        hidden.value = String(newItem.id);
-        close();
+        input.value = newItem.nombre; hidden.value = String(newItem.id); close();
       } catch (err) {
         alert("Error al crear: " + err.message);
         strong.textContent = originalTxt;
-      } finally {
-        createBtn.disabled = false;
-      }
+      } finally { createBtn.disabled = false; }
     });
 
     renderList();
-
     return {
       getValue: () => hidden.value ? { id: Number(hidden.value), nombre: input.value } : null,
       getId: () => hidden.value ? Number(hidden.value) : null,
@@ -394,7 +368,7 @@
   }
 
   // ====================================================================
-  //   Handlers de botones "Nuevo" y click en filas
+  //   Handlers de "Nuevo" y click en filas
   // ====================================================================
   document.addEventListener("click", async (e) => {
     const btn = e.target.closest(".admin-new-btn");
@@ -412,7 +386,6 @@
     const tbody = tr.parentElement;
     const id = Number(tr.dataset.id);
     if (tbody.id === "tabla-body") {
-      // Leemos de partidos_view para tener IDs Y strings
       const { data, error } = await window.sb.from("partidos_view").select("*").eq("id", id).single();
       if (error) return alert("No se pudo cargar el partido: " + error.message);
       await openPartidoForm(data);
@@ -433,10 +406,7 @@
   }
 
   async function withLoadingModal(fn) {
-    openModal(`
-      <h2 class="admin-title">Cargando…</h2>
-      <p class="admin-sub">Preparando el formulario.</p>
-    `);
+    openModal(`<h2 class="admin-title">Cargando…</h2><p class="admin-sub">Preparando el formulario.</p>`);
     try { await fn(); }
     catch (e) {
       openModal(`
@@ -467,7 +437,6 @@
       cancha_id: null, formato_id: null, companiero_id: null,
       rival1_id: null, rival2_id: null
     };
-
     openModal(`
       <h2 class="admin-title">${isEdit ? "Editar partido #" + r.id : "Nuevo partido"}</h2>
       <form id="admin-partido-form" class="admin-form">
@@ -497,7 +466,6 @@
         </div>
       </form>
     `);
-
     const form = $("#admin-partido-form");
     const combos = {
       cancha:     makeCombo({ container: form.querySelectorAll(".admin-combo")[0], catalog: "canchas",   initialId: r.cancha_id }),
@@ -506,14 +474,11 @@
       rival1:     makeCombo({ container: form.querySelectorAll(".admin-combo")[3], catalog: "jugadores", initialId: r.rival1_id }),
       rival2:     makeCombo({ container: form.querySelectorAll(".admin-combo")[4], catalog: "jugadores", initialId: r.rival2_id }),
     };
-
     modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const err = $("#admin-partido-err");
-      err.hidden = true;
-
+      const err = $("#admin-partido-err"); err.hidden = true;
       const fd = new FormData(form);
       const fecha = fd.get("fecha");
       const resultado = fd.get("resultado");
@@ -522,8 +487,6 @@
       const companieroId = combos.companiero.getId();
       const rival1Id = combos.rival1.getId();
       const rival2Id = combos.rival2.getId();
-
-      // Validaciones
       const missing = [];
       if (!canchaId) missing.push("Cancha");
       if (!formatoId) missing.push("Formato");
@@ -532,28 +495,17 @@
       if (!rival2Id) missing.push("Rival 2");
       if (missing.length) {
         err.textContent = "Faltan campos: " + missing.join(", ") + ". Elegí una opción de la lista o creá una nueva.";
-        err.hidden = false;
-        return;
+        err.hidden = false; return;
       }
-      if (rival1Id === rival2Id) {
-        err.textContent = "Rival 1 y Rival 2 no pueden ser el mismo jugador.";
-        err.hidden = false;
-        return;
-      }
+      if (rival1Id === rival2Id) { err.textContent = "Rival 1 y Rival 2 no pueden ser el mismo jugador."; err.hidden = false; return; }
       if (companieroId === rival1Id || companieroId === rival2Id) {
-        err.textContent = "El compañero no puede ser también rival.";
-        err.hidden = false;
-        return;
+        err.textContent = "El compañero no puede ser también rival."; err.hidden = false; return;
       }
-
       const { anio, mes, dia } = deriveFromDate(fecha);
       const payload = {
         fecha, anio, mes, dia, resultado,
-        cancha_id: canchaId,
-        formato_id: formatoId,
-        companiero_id: companieroId,
-        rival1_id: rival1Id,
-        rival2_id: rival2Id
+        cancha_id: canchaId, formato_id: formatoId, companiero_id: companieroId,
+        rival1_id: rival1Id, rival2_id: rival2Id
       };
       await submitRecord("partidos", isEdit ? r.id : null, payload, "#admin-partido-err", form);
     });
@@ -594,7 +546,6 @@
       fecha: "", organizador_id: null, categoria_id: null, companiero_id: null,
       zona: null, octavos: null, cuartos: null, semifinal: null, final: null, puesto: null
     };
-
     openModal(`
       <h2 class="admin-title">${isEdit ? "Editar torneo #" + r.id : "Nuevo torneo"}</h2>
       <form id="admin-torneo-form" class="admin-form">
@@ -635,37 +586,30 @@
         </div>
       </form>
     `);
-
     const form = $("#admin-torneo-form");
     const combos = {
       organizador: makeCombo({ container: form.querySelectorAll(".admin-combo")[0], catalog: "organizadores", initialId: r.organizador_id }),
       categoria:   makeCombo({ container: form.querySelectorAll(".admin-combo")[1], catalog: "categorias",    initialId: r.categoria_id }),
       companiero:  makeCombo({ container: form.querySelectorAll(".admin-combo")[2], catalog: "jugadores",     initialId: r.companiero_id }),
     };
-
     modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const err = $("#admin-torneo-err");
-      err.hidden = true;
-
+      const err = $("#admin-torneo-err"); err.hidden = true;
       const fd = new FormData(form);
       const fecha = fd.get("fecha");
       const organizadorId = combos.organizador.getId();
       const categoriaId = combos.categoria.getId();
       const companieroId = combos.companiero.getId();
-
       const missing = [];
       if (!organizadorId) missing.push("Organizador");
       if (!categoriaId) missing.push("Categoría");
       if (!companieroId) missing.push("Compañero");
       if (missing.length) {
         err.textContent = "Faltan campos: " + missing.join(", ") + ". Elegí una opción de la lista o creá una nueva.";
-        err.hidden = false;
-        return;
+        err.hidden = false; return;
       }
-
       const tri = (name) => {
         const v = fd.get(name);
         if (v === "true") return true;
@@ -676,14 +620,9 @@
       const { anio, mes, dia } = deriveFromDate(fecha);
       const payload = {
         fecha, anio, mes, dia,
-        organizador_id: organizadorId,
-        categoria_id: categoriaId,
-        companiero_id: companieroId,
-        zona: tri("zona"),
-        octavos: tri("octavos"),
-        cuartos: tri("cuartos"),
-        semifinal: tri("semifinal"),
-        final: tri("final"),
+        organizador_id: organizadorId, categoria_id: categoriaId, companiero_id: companieroId,
+        zona: tri("zona"), octavos: tri("octavos"), cuartos: tri("cuartos"),
+        semifinal: tri("semifinal"), final: tri("final"),
         puesto: puestoRaw || null
       };
       await submitRecord("torneos", isEdit ? r.id : null, payload, "#admin-torneo-err", form);
@@ -698,18 +637,15 @@
   }
 
   // ====================================================================
-  //   Submit genérico
+  //   Submit y delete genéricos (partidos/torneos)
   // ====================================================================
   async function submitRecord(table, id, payload, errSel, form) {
-    const err = $(errSel);
-    err.hidden = true;
+    const err = $(errSel); err.hidden = true;
     const btn = form.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = "Guardando…";
-
     let res;
     if (id == null) res = await window.sb.from(table).insert(payload);
     else            res = await window.sb.from(table).update(payload).eq("id", id);
-
     if (res.error) {
       err.textContent = "Error: " + res.error.message;
       err.hidden = false;
@@ -718,7 +654,6 @@
     }
     location.reload();
   }
-
   async function deleteRecord(table, id, errSel) {
     const { error } = await window.sb.from(table).delete().eq("id", id);
     if (error) {
@@ -729,4 +664,267 @@
     }
     location.reload();
   }
+
+  // ====================================================================
+  //   BLOQUE 3 · Panel de gestión de catálogos
+  // ====================================================================
+  // El estado del modal se guarda en un objeto viajero. Al hacer rename de un
+  // item con uso > 0 marcamos dirty=true; al cerrar el modal reload completo
+  // para que los partidos/torneos ya cargados reflejen el nuevo nombre.
+
+  async function openCatalogsModal() {
+    const state = {
+      activeTab: "canchas",
+      filter: "",
+      items: [],
+      dirty: false,
+      editingId: null,   // id existente en edición, o "new", o null
+      editValue: ""
+    };
+    renderCatalogsShell(state);
+    await loadCatalogTab(state);
+    renderCatalogsBody(state);
+  }
+
+  function renderCatalogsShell(state) {
+    const tabs = CATALOGS.map(c => `
+      <button type="button" class="catalog-tab ${c.key === state.activeTab ? "active" : ""}" data-tab="${c.key}">
+        <span>${c.icon}</span> ${c.plural}
+      </button>
+    `).join("");
+
+    openModal(`
+      <h2 class="admin-title">Gestión de catálogos</h2>
+      <p class="admin-sub">Administrá los valores que alimentan los combos de partidos y torneos.</p>
+      <div class="catalog-tabs">${tabs}</div>
+      <div class="catalog-toolbar">
+        <input type="search" id="catalog-search" placeholder="Buscar…" autocomplete="off">
+        <button type="button" class="admin-btn primary" id="catalog-new-btn">➕ Nuevo</button>
+      </div>
+      <div class="catalog-body" id="catalog-body">
+        <p class="catalog-empty">Cargando…</p>
+      </div>
+      <p class="admin-err" id="catalog-err" hidden></p>
+      <div class="admin-actions">
+        <button type="button" class="admin-btn ghost" id="catalog-close-btn">Cerrar</button>
+      </div>
+    `, { wide: true });
+
+    modalRoot.querySelectorAll(".catalog-tab").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        if (btn.dataset.tab === state.activeTab) return;
+        state.activeTab = btn.dataset.tab;
+        state.filter = "";
+        state.editingId = null;
+        modalRoot.querySelectorAll(".catalog-tab").forEach(b =>
+          b.classList.toggle("active", b.dataset.tab === state.activeTab));
+        $("#catalog-search").value = "";
+        $("#catalog-body").innerHTML = `<p class="catalog-empty">Cargando…</p>`;
+        await loadCatalogTab(state);
+        renderCatalogsBody(state);
+      });
+    });
+
+    $("#catalog-search").addEventListener("input", (e) => {
+      state.filter = e.target.value;
+      renderCatalogsBody(state);
+    });
+
+    $("#catalog-new-btn").addEventListener("click", () => {
+      state.editingId = "new";
+      state.editValue = "";
+      renderCatalogsBody(state);
+      const input = modalRoot.querySelector(".catalog-row.new .catalog-edit-input");
+      if (input) input.focus();
+    });
+
+    $("#catalog-close-btn").addEventListener("click", () => {
+      if (state.dirty) location.reload();
+      else closeModal();
+    });
+
+    // Delegación permanente de clicks sobre el body
+    $("#catalog-body").addEventListener("click", (e) => onCatalogAction(e, state));
+    // Tracking del input inline + Enter/Escape (delegado)
+    $("#catalog-body").addEventListener("input", (e) => {
+      if (e.target.classList.contains("catalog-edit-input")) state.editValue = e.target.value;
+    });
+    $("#catalog-body").addEventListener("keydown", async (e) => {
+      if (!e.target.classList.contains("catalog-edit-input")) return;
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (state.editingId === "new") await handleSaveNew(state);
+        else await handleSaveEdit(state);
+      } else if (e.key === "Escape") {
+        state.editingId = null;
+        renderCatalogsBody(state);
+      }
+    });
+  }
+
+  async function loadCatalogTab(state) {
+    const meta = CATALOG_BY_KEY[state.activeTab];
+    const { data, error } = await window.sb
+      .from(meta.viewUso).select("id, nombre, uso").order("nombre");
+    if (error) {
+      state.items = [];
+      showCatalogError(error.message);
+      return;
+    }
+    state.items = data || [];
+  }
+
+  function showCatalogError(msg) {
+    const err = $("#catalog-err");
+    if (!err) return;
+    err.textContent = "Error: " + msg;
+    err.hidden = false;
+    setTimeout(() => { if (err) err.hidden = true; }, 5000);
+  }
+
+  function renderCatalogsBody(state) {
+    const container = $("#catalog-body");
+    const meta = CATALOG_BY_KEY[state.activeTab];
+    const q = state.filter.trim().toLowerCase();
+    const filtered = q ? state.items.filter(x => x.nombre.toLowerCase().includes(q)) : state.items;
+
+    const rowsHtml = [];
+
+    if (state.editingId === "new") {
+      rowsHtml.push(`
+        <div class="catalog-row editing new" data-id="new">
+          <input type="text" class="catalog-edit-input" placeholder="Nombre del ${escapeHtml(meta.singular)}…" value="${escapeHtml(state.editValue)}">
+          <div class="catalog-actions">
+            <button type="button" class="catalog-btn primary" data-action="save-new" title="Crear">✅</button>
+            <button type="button" class="catalog-btn" data-action="cancel-new" title="Cancelar">✖️</button>
+          </div>
+        </div>
+      `);
+    }
+
+    for (const item of filtered) {
+      if (state.editingId === item.id) {
+        rowsHtml.push(`
+          <div class="catalog-row editing" data-id="${item.id}">
+            <input type="text" class="catalog-edit-input" value="${escapeHtml(state.editValue)}">
+            <div class="catalog-actions">
+              <button type="button" class="catalog-btn primary" data-action="save-edit" title="Guardar">✅</button>
+              <button type="button" class="catalog-btn" data-action="cancel-edit" title="Cancelar">✖️</button>
+            </div>
+          </div>
+        `);
+      } else {
+        const canDelete = item.uso === 0;
+        rowsHtml.push(`
+          <div class="catalog-row" data-id="${item.id}">
+            <span class="catalog-name">${escapeHtml(item.nombre)}</span>
+            <span class="catalog-uso ${canDelete ? "unused" : ""}" title="${canDelete ? "Sin uso" : "En uso"}">${item.uso}</span>
+            <div class="catalog-actions">
+              <button type="button" class="catalog-btn" data-action="edit" title="Editar">✏️</button>
+              <button type="button" class="catalog-btn danger" data-action="delete" title="${canDelete ? "Eliminar" : "En uso — no se puede eliminar"}" ${canDelete ? "" : "disabled"}>🗑️</button>
+            </div>
+          </div>
+        `);
+      }
+    }
+
+    if (rowsHtml.length === 0) {
+      container.innerHTML = `
+        <p class="catalog-empty">${q ? "No hay coincidencias con \"" + escapeHtml(state.filter) + "\"." : "No hay registros todavía. Click en \"➕ Nuevo\" para agregar el primero."}</p>
+      `;
+    } else {
+      container.innerHTML = `<div class="catalog-list">${rowsHtml.join("")}</div>`;
+    }
+
+    // Enfocar y seleccionar el input recién insertado (si hay uno)
+    const focusInput = container.querySelector(".catalog-row.editing .catalog-edit-input");
+    if (focusInput && document.activeElement !== focusInput) {
+      // Solo enfocar automáticamente si el usuario acaba de entrar en modo edición
+      // (evita robar el foco al re-renderizar por otros motivos)
+      focusInput.focus();
+      if (state.editingId !== "new") focusInput.select();
+    }
+  }
+
+  async function onCatalogAction(e, state) {
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const row = btn.closest(".catalog-row");
+    const rowId = row.dataset.id;
+
+    if (action === "edit") {
+      const item = state.items.find(x => String(x.id) === rowId);
+      if (!item) return;
+      state.editingId = item.id;
+      state.editValue = item.nombre;
+      renderCatalogsBody(state);
+    }
+    else if (action === "cancel-edit" || action === "cancel-new") {
+      state.editingId = null;
+      renderCatalogsBody(state);
+    }
+    else if (action === "save-edit") {
+      await handleSaveEdit(state);
+    }
+    else if (action === "save-new") {
+      await handleSaveNew(state);
+    }
+    else if (action === "delete") {
+      await handleDelete(state, Number(rowId));
+    }
+  }
+
+  async function handleSaveNew(state) {
+    const nombre = state.editValue.trim();
+    if (!nombre) { showCatalogError("El nombre no puede estar vacío."); return; }
+    try {
+      await createCatalogItem(state.activeTab, nombre);
+      await loadCatalogTab(state);
+      state.editingId = null;
+      state.editValue = "";
+      renderCatalogsBody(state);
+    } catch (err) {
+      showCatalogError(err.message);
+    }
+  }
+
+  async function handleSaveEdit(state) {
+    const nombre = state.editValue.trim();
+    if (!nombre) { showCatalogError("El nombre no puede estar vacío."); return; }
+    const original = state.items.find(x => x.id === state.editingId);
+    if (!original) { showCatalogError("Registro no encontrado."); return; }
+    if (nombre === original.nombre) {
+      state.editingId = null;
+      renderCatalogsBody(state);
+      return;
+    }
+    try {
+      await updateCatalogItem(state.activeTab, state.editingId, nombre);
+      if (original.uso > 0) state.dirty = true;
+      await loadCatalogTab(state);
+      state.editingId = null;
+      renderCatalogsBody(state);
+    } catch (err) {
+      showCatalogError(err.message);
+    }
+  }
+
+  async function handleDelete(state, id) {
+    const item = state.items.find(x => x.id === id);
+    if (!item) return;
+    if (item.uso > 0) {
+      alert(`No se puede eliminar "${item.nombre}": está en uso en ${item.uso} registro${item.uso === 1 ? "" : "s"}.`);
+      return;
+    }
+    if (!confirm(`¿Eliminar "${item.nombre}" de ${CATALOG_BY_KEY[state.activeTab].plural}?`)) return;
+    try {
+      await deleteCatalogItem(state.activeTab, id);
+      await loadCatalogTab(state);
+      renderCatalogsBody(state);
+    } catch (err) {
+      showCatalogError(err.message);
+    }
+  }
+
 })();
