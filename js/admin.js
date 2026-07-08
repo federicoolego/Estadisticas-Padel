@@ -1,21 +1,124 @@
-// ===== Módulo Administrador =====
-// Maneja: login/logout, alta/baja/modificación de partidos y torneos.
-// Independiente de app.js y torneos.js: se comunica solo con Supabase.
-// Tras cualquier ABM, hace location.reload() para garantizar consistencia total
+// ===== Módulo Administrador + Switch de entorno =====
+// El switch de entorno (Local ↔ Producción) siempre está activo.
+// El resto (auth y ABM) solo se activa cuando APP_ENV.isProd === true.
+//
+// Tras cualquier ABM hace location.reload() para garantizar consistencia total
 // (más simple y confiable que sincronizar los estados internos de cada módulo).
 
 (function () {
   "use strict";
 
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const modalRoot = document.getElementById("admin-modal-root");
+  const envBtn = document.getElementById("env-toggle");
+  const envIcon = envBtn && envBtn.querySelector(".env-toggle-icon");
+  const envLabel = envBtn && envBtn.querySelector(".env-toggle-label");
+  const toggleBtn = document.getElementById("admin-toggle");
+  const toggleIcon = toggleBtn && toggleBtn.querySelector(".admin-toggle-icon");
+  const toggleLabel = toggleBtn && toggleBtn.querySelector(".admin-toggle-label");
+
+  const IS_PROD = !!(window.APP_ENV && window.APP_ENV.isProd);
+
+  // ====================================================================
+  //   BLOQUE 1 · Switch de entorno (siempre activo)
+  // ====================================================================
+
+  function refreshEnvButton() {
+    if (!envBtn) return;
+    if (IS_PROD) {
+      envIcon.textContent = "☁️";
+      envLabel.textContent = "Producción";
+      envBtn.title = "Entorno: Producción (Supabase) · click para cambiar";
+      envBtn.classList.add("prod");
+      envBtn.classList.remove("local");
+    } else {
+      envIcon.textContent = "🖥️";
+      envLabel.textContent = "Local";
+      envBtn.title = "Entorno: Local (JSON estáticos, solo lectura) · click para cambiar";
+      envBtn.classList.add("local");
+      envBtn.classList.remove("prod");
+    }
+  }
+  refreshEnvButton();
+
+  if (envBtn) envBtn.addEventListener("click", openEnvModal);
+
+  function openEnvModal() {
+    openModal(`
+      <h2 class="admin-title">Cambiar entorno</h2>
+      <p class="admin-sub">Elegí desde qué fuente se cargan los datos.</p>
+
+      <div class="env-options">
+        <button type="button" class="env-option ${!IS_PROD ? "active" : ""}" data-env="local">
+          <span class="env-option-icon">🖥️</span>
+          <div class="env-option-body">
+            <strong>Local</strong>
+            <small>Lee <code>data/partidos.json</code> y <code>data/torneos.json</code> del repo.<br>Solo lectura. Ideal si Supabase se cae o para trabajar offline.</small>
+          </div>
+        </button>
+        <button type="button" class="env-option ${IS_PROD ? "active" : ""}" data-env="prod">
+          <span class="env-option-icon">☁️</span>
+          <div class="env-option-body">
+            <strong>Producción</strong>
+            <small>Lee y escribe contra Supabase.<br>Requiere iniciar sesión para editar.</small>
+          </div>
+        </button>
+      </div>
+
+      <p class="admin-hint">Al cambiar el entorno la página se recarga automáticamente.</p>
+
+      <div class="admin-actions">
+        <button type="button" class="admin-btn ghost" data-close>Cerrar</button>
+      </div>
+    `);
+    modalRoot.querySelectorAll(".env-option").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.env;
+        if ((target === "prod") === IS_PROD) { closeModal(); return; }
+        window.APP_ENV.setMode(target); // hace location.reload()
+      });
+    });
+    modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
+  }
+
+  // ====================================================================
+  //   Modal helpers (compartidos entre env, login y ABM)
+  // ====================================================================
+  function closeModal() {
+    modalRoot.innerHTML = "";
+    document.body.classList.remove("admin-modal-open");
+    document.removeEventListener("keydown", escToClose);
+  }
+  function openModal(html) {
+    modalRoot.innerHTML = `
+      <div class="admin-backdrop">
+        <div class="admin-modal" role="dialog" aria-modal="true">
+          ${html}
+        </div>
+      </div>`;
+    document.body.classList.add("admin-modal-open");
+    modalRoot.querySelector(".admin-backdrop").addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    document.addEventListener("keydown", escToClose);
+  }
+  function escToClose(e) {
+    if (e.key === "Escape") closeModal();
+  }
+
+  // ====================================================================
+  //   BLOQUE 2 · Auth + ABM (solo en modo Producción)
+  // ====================================================================
+  if (!IS_PROD) return;
+
+  if (!window.sb) {
+    console.warn("admin.js: modo Producción sin cliente Supabase inicializado.");
+    return;
+  }
+
   const MESES_LARGOS = ["", "enero", "febrero", "marzo", "abril", "mayo", "junio",
     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
   const DIAS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-
-  const $ = (sel, root) => (root || document).querySelector(sel);
-  const modalRoot = document.getElementById("admin-modal-root");
-  const toggleBtn = document.getElementById("admin-toggle");
-  const toggleIcon = toggleBtn.querySelector(".admin-toggle-icon");
-  const toggleLabel = toggleBtn.querySelector(".admin-toggle-label");
 
   // ---------- Sesión ----------
   async function updateSessionUI() {
@@ -42,29 +145,6 @@
     if (session) openAdminMenu(session.user.email);
     else openLoginModal();
   });
-
-  // ---------- Modal helpers ----------
-  function closeModal() {
-    modalRoot.innerHTML = "";
-    document.body.classList.remove("admin-modal-open");
-  }
-
-  function openModal(html) {
-    modalRoot.innerHTML = `
-      <div class="admin-backdrop">
-        <div class="admin-modal" role="dialog" aria-modal="true">
-          ${html}
-        </div>
-      </div>`;
-    document.body.classList.add("admin-modal-open");
-    modalRoot.querySelector(".admin-backdrop").addEventListener("click", (e) => {
-      if (e.target === e.currentTarget) closeModal();
-    });
-    document.addEventListener("keydown", escToClose);
-  }
-  function escToClose(e) {
-    if (e.key === "Escape") { closeModal(); document.removeEventListener("keydown", escToClose); }
-  }
 
   // ---------- Login ----------
   function openLoginModal() {
@@ -156,20 +236,13 @@
     }
   });
 
-  // ---------- Helpers de derivación ----------
+  // ---------- Helpers ----------
   function deriveFromDate(fechaStr) {
-    // fechaStr: "YYYY-MM-DD"
     const [y, mo, d] = fechaStr.split("-").map(Number);
-    // Usamos UTC noon para evitar corrimiento por timezone
     const dt = new Date(Date.UTC(y, mo - 1, d, 12));
-    const diaNum = dt.getUTCDay(); // 0..6
-    return {
-      anio: y,
-      mes: mo,
-      dia: DIAS_ES[diaNum]
-    };
+    const diaNum = dt.getUTCDay();
+    return { anio: y, mes: mo, dia: DIAS_ES[diaNum] };
   }
-
   function escapeHtml(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;")
@@ -241,7 +314,6 @@
 
   // ---------- Formulario TORNEO ----------
   function triSelect(name, val) {
-    // val: true / false / null / undefined
     const opts = [
       { v: "",     label: "— No jugó" },
       { v: "true", label: "✅ Ganó" },
@@ -341,7 +413,7 @@
     }
   }
 
-  // ---------- Submit genérico (insert / update) ----------
+  // ---------- Submit genérico ----------
   async function submitRecord(table, id, payload, errSel, form) {
     const err = $(errSel);
     err.hidden = true;
@@ -349,18 +421,15 @@
     btn.disabled = true; btn.textContent = "Guardando…";
 
     let res;
-    if (id == null) {
-      res = await window.sb.from(table).insert(payload);
-    } else {
-      res = await window.sb.from(table).update(payload).eq("id", id);
-    }
+    if (id == null) res = await window.sb.from(table).insert(payload);
+    else            res = await window.sb.from(table).update(payload).eq("id", id);
+
     if (res.error) {
       err.textContent = "Error: " + res.error.message;
       err.hidden = false;
       btn.disabled = false; btn.textContent = id == null ? "Crear" : "Guardar";
       return;
     }
-    // Recarga para reflejar el cambio en filtros, KPIs, charts y tabla.
     location.reload();
   }
 
