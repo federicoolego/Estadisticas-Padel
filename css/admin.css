@@ -1,446 +1,357 @@
-// ===== Módulo Administrador + Switch de entorno =====
-// El switch de entorno (Local ↔ Producción) siempre está activo.
-// El resto (auth y ABM) solo se activa cuando APP_ENV.isProd === true.
-//
-// Tras cualquier ABM hace location.reload() para garantizar consistencia total
-// (más simple y confiable que sincronizar los estados internos de cada módulo).
+/* ===== Admin + Switch de entorno: botones, modales y formularios ===== */
 
-(function () {
-  "use strict";
+/* -------- Barra superior (contenedor de botones) -------- */
+.topbar {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 40;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 
-  const $ = (sel, root) => (root || document).querySelector(sel);
-  const modalRoot = document.getElementById("admin-modal-root");
-  const envBtn = document.getElementById("env-toggle");
-  const envIcon = envBtn && envBtn.querySelector(".env-toggle-icon");
-  const envLabel = envBtn && envBtn.querySelector(".env-toggle-label");
-  const toggleBtn = document.getElementById("admin-toggle");
-  const toggleIcon = toggleBtn && toggleBtn.querySelector(".admin-toggle-icon");
-  const toggleLabel = toggleBtn && toggleBtn.querySelector(".admin-toggle-label");
+/* Elementos con clase .admin-only quedan ocultos hasta que hay sesión */
+.admin-only { display: none !important; }
+body.is-admin .admin-only { display: inline-flex !important; }
 
-  const IS_PROD = !!(window.APP_ENV && window.APP_ENV.isProd);
+/* En modo Local el botón Admin no tiene sentido: se oculta por completo */
+html.env-local #admin-toggle { display: none !important; }
 
-  // ====================================================================
-  //   BLOQUE 1 · Switch de entorno (siempre activo)
-  // ====================================================================
+/* -------- Botón Admin -------- */
+.admin-toggle,
+.env-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--panel);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.admin-toggle:hover,
+.env-toggle:hover {
+  background: var(--panel-2);
+  color: var(--text);
+  border-color: var(--accent);
+}
+.admin-toggle-icon,
+.env-toggle-icon { font-size: 15px; line-height: 1; }
+body.is-admin .admin-toggle {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 
-  function refreshEnvButton() {
-    if (!envBtn) return;
-    if (IS_PROD) {
-      envIcon.textContent = "☁️";
-      envLabel.textContent = "Producción";
-      envBtn.title = "Entorno: Producción (Supabase) · click para cambiar";
-      envBtn.classList.add("prod");
-      envBtn.classList.remove("local");
-    } else {
-      envIcon.textContent = "🖥️";
-      envLabel.textContent = "Local";
-      envBtn.title = "Entorno: Local (JSON estáticos, solo lectura) · click para cambiar";
-      envBtn.classList.add("local");
-      envBtn.classList.remove("prod");
-    }
+/* -------- Botón entorno (colores según modo) -------- */
+.env-toggle.local {
+  color: var(--muted);
+}
+.env-toggle.prod {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* -------- Botón "Nuevo" dentro de la hero -------- */
+.admin-new-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #0d1117;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s;
+}
+.admin-new-btn:hover { background: var(--accent-dim); }
+.admin-new-btn:active { transform: translateY(1px); }
+
+/* -------- Filas de tabla clickeables cuando admin -------- */
+body.is-admin .tabla tbody tr { cursor: pointer; }
+body.is-admin .tabla tbody tr:hover td {
+  background: rgba(74, 222, 128, 0.06);
+}
+
+/* -------- Modal -------- */
+.admin-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+  animation: adminFadeIn 0.15s ease-out;
+}
+@keyframes adminFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.admin-modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: adminSlideIn 0.2s ease-out;
+}
+@keyframes adminSlideIn {
+  from { transform: translateY(-10px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+body.admin-modal-open { overflow: hidden; }
+
+.admin-title {
+  font-family: var(--font-num);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.admin-sub {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.admin-hint {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 16px;
+}
+.admin-hint-inline {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+.admin-list {
+  color: var(--text);
+  font-size: 14px;
+  padding-left: 20px;
+  margin: 8px 0 20px;
+}
+.admin-list li { margin: 6px 0; }
+
+/* -------- Opciones del modal de entorno -------- */
+.env-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 14px;
+}
+.env-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+  font-family: var(--font-body);
+}
+.env-option:hover {
+  border-color: var(--accent);
+  background: var(--panel-2);
+}
+.env-option.active {
+  border-color: var(--accent);
+  background: rgba(74, 222, 128, 0.08);
+}
+.env-option-icon {
+  font-size: 22px;
+  line-height: 1;
+  margin-top: 2px;
+}
+.env-option-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.env-option-body strong {
+  font-size: 15px;
+  color: var(--text);
+  font-weight: 700;
+}
+.env-option-body small {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.env-option-body code {
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--text);
+}
+
+/* -------- Formulario -------- */
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.admin-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.admin-form input[type="text"],
+.admin-form input[type="email"],
+.admin-form input[type="password"],
+.admin-form input[type="date"],
+.admin-form select {
+  padding: 10px 12px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  transition: border-color 0.15s;
+}
+.admin-form input:focus,
+.admin-form select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.admin-form input::placeholder { color: #4b5563; }
+
+.admin-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.admin-fieldset {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px 16px;
+  margin-top: 4px;
+}
+.admin-fieldset legend {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 0 8px;
+}
+.admin-row-etapas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.admin-row-etapas label {
+  font-size: 11px;
+}
+.admin-row-etapas select {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.admin-err {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: var(--loss);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+}
+
+/* -------- Botones del modal -------- */
+.admin-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.admin-actions.with-delete {
+  justify-content: space-between;
+}
+.admin-btn {
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.admin-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.admin-btn.primary {
+  background: var(--accent);
+  color: #0d1117;
+}
+.admin-btn.primary:hover:not(:disabled) { background: var(--accent-dim); }
+
+.admin-btn.ghost {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--border);
+}
+.admin-btn.ghost:hover { color: var(--text); border-color: var(--muted); }
+
+.admin-btn.danger {
+  background: transparent;
+  color: var(--loss);
+  border-color: rgba(248, 113, 113, 0.5);
+}
+.admin-btn.danger:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: var(--loss);
+}
+
+/* -------- Responsive -------- */
+@media (max-width: 520px) {
+  .topbar {
+    top: 10px;
+    right: 10px;
+    gap: 6px;
   }
-  refreshEnvButton();
-
-  if (envBtn) envBtn.addEventListener("click", openEnvModal);
-
-  function openEnvModal() {
-    openModal(`
-      <h2 class="admin-title">Cambiar entorno</h2>
-      <p class="admin-sub">Elegí desde qué fuente se cargan los datos.</p>
-
-      <div class="env-options">
-        <button type="button" class="env-option ${!IS_PROD ? "active" : ""}" data-env="local">
-          <span class="env-option-icon">🖥️</span>
-          <div class="env-option-body">
-            <strong>Local</strong>
-            <small>Lee <code>data/partidos.json</code> y <code>data/torneos.json</code> del repo.<br>Solo lectura. Ideal si Supabase se cae o para trabajar offline.</small>
-          </div>
-        </button>
-        <button type="button" class="env-option ${IS_PROD ? "active" : ""}" data-env="prod">
-          <span class="env-option-icon">☁️</span>
-          <div class="env-option-body">
-            <strong>Producción</strong>
-            <small>Lee y escribe contra Supabase.<br>Requiere iniciar sesión para editar.</small>
-          </div>
-        </button>
-      </div>
-
-      <p class="admin-hint">Al cambiar el entorno la página se recarga automáticamente.</p>
-
-      <div class="admin-actions">
-        <button type="button" class="admin-btn ghost" data-close>Cerrar</button>
-      </div>
-    `);
-    modalRoot.querySelectorAll(".env-option").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const target = btn.dataset.env;
-        if ((target === "prod") === IS_PROD) { closeModal(); return; }
-        window.APP_ENV.setMode(target); // hace location.reload()
-      });
-    });
-    modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
+  .admin-toggle,
+  .env-toggle {
+    padding: 6px 10px;
+    font-size: 12px;
   }
-
-  // ====================================================================
-  //   Modal helpers (compartidos entre env, login y ABM)
-  // ====================================================================
-  function closeModal() {
-    modalRoot.innerHTML = "";
-    document.body.classList.remove("admin-modal-open");
-    document.removeEventListener("keydown", escToClose);
-  }
-  function openModal(html) {
-    modalRoot.innerHTML = `
-      <div class="admin-backdrop">
-        <div class="admin-modal" role="dialog" aria-modal="true">
-          ${html}
-        </div>
-      </div>`;
-    document.body.classList.add("admin-modal-open");
-    modalRoot.querySelector(".admin-backdrop").addEventListener("click", (e) => {
-      if (e.target === e.currentTarget) closeModal();
-    });
-    document.addEventListener("keydown", escToClose);
-  }
-  function escToClose(e) {
-    if (e.key === "Escape") closeModal();
-  }
-
-  // ====================================================================
-  //   BLOQUE 2 · Auth + ABM (solo en modo Producción)
-  // ====================================================================
-  if (!IS_PROD) return;
-
-  if (!window.sb) {
-    console.warn("admin.js: modo Producción sin cliente Supabase inicializado.");
-    return;
-  }
-
-  const MESES_LARGOS = ["", "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-  const DIAS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-
-  // ---------- Sesión ----------
-  async function updateSessionUI() {
-    const { data: { session } } = await window.sb.auth.getSession();
-    const isAdmin = !!session;
-    document.body.classList.toggle("is-admin", isAdmin);
-    if (isAdmin) {
-      toggleIcon.textContent = "🔓";
-      const email = session.user.email || "";
-      toggleLabel.textContent = email.split("@")[0] || "Admin";
-      toggleBtn.title = `Sesión: ${email} · click para menú`;
-    } else {
-      toggleIcon.textContent = "🔒";
-      toggleLabel.textContent = "Admin";
-      toggleBtn.title = "Modo administrador";
-    }
-  }
-
-  window.sb.auth.onAuthStateChange(() => updateSessionUI());
-  updateSessionUI();
-
-  toggleBtn.addEventListener("click", async () => {
-    const { data: { session } } = await window.sb.auth.getSession();
-    if (session) openAdminMenu(session.user.email);
-    else openLoginModal();
-  });
-
-  // ---------- Login ----------
-  function openLoginModal() {
-    openModal(`
-      <h2 class="admin-title">Iniciar sesión</h2>
-      <p class="admin-sub">Ingresá con tu usuario admin de Supabase.</p>
-      <form id="admin-login-form" class="admin-form">
-        <label>Email
-          <input type="email" name="email" required autocomplete="username" autofocus>
-        </label>
-        <label>Contraseña
-          <input type="password" name="password" required autocomplete="current-password">
-        </label>
-        <p class="admin-err" id="admin-login-err" hidden></p>
-        <div class="admin-actions">
-          <button type="button" class="admin-btn ghost" data-close>Cancelar</button>
-          <button type="submit" class="admin-btn primary">Entrar</button>
-        </div>
-      </form>
-    `);
-    $("#admin-login-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      const err = $("#admin-login-err");
-      err.hidden = true;
-      const btn = e.target.querySelector('button[type="submit"]');
-      btn.disabled = true; btn.textContent = "Entrando…";
-      const { error } = await window.sb.auth.signInWithPassword({
-        email: fd.get("email"),
-        password: fd.get("password")
-      });
-      if (error) {
-        err.textContent = "No se pudo iniciar sesión. Revisá email y contraseña.";
-        err.hidden = false;
-        btn.disabled = false; btn.textContent = "Entrar";
-        return;
-      }
-      closeModal();
-    });
-    modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
-  }
-
-  function openAdminMenu(email) {
-    openModal(`
-      <h2 class="admin-title">Modo administrador</h2>
-      <p class="admin-sub">Sesión activa como <strong>${escapeHtml(email)}</strong>.</p>
-      <p class="admin-hint">Con la sesión abierta podés:</p>
-      <ul class="admin-list">
-        <li>Usar los botones <strong>➕ Nuevo</strong> en cada pestaña.</li>
-        <li>Click en cualquier <strong>fila de la tabla</strong> para editar o eliminar.</li>
-      </ul>
-      <div class="admin-actions">
-        <button type="button" class="admin-btn danger" id="admin-logout">Cerrar sesión</button>
-        <button type="button" class="admin-btn primary" data-close>Listo</button>
-      </div>
-    `);
-    modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
-    $("#admin-logout").addEventListener("click", async () => {
-      await window.sb.auth.signOut();
-      closeModal();
-    });
-  }
-
-  // ---------- Botones "Nuevo" ----------
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".admin-new-btn");
-    if (!btn) return;
-    if (!document.body.classList.contains("is-admin")) return;
-    const kind = btn.dataset.new;
-    if (kind === "partido") openPartidoForm();
-    if (kind === "torneo") openTorneoForm();
-  });
-
-  // ---------- Click en filas de las tablas → editar ----------
-  document.addEventListener("click", async (e) => {
-    if (!document.body.classList.contains("is-admin")) return;
-    const tr = e.target.closest("tr[data-id]");
-    if (!tr) return;
-    const tbody = tr.parentElement;
-    const id = Number(tr.dataset.id);
-    if (tbody.id === "tabla-body") {
-      const { data, error } = await window.sb.from("partidos").select("*").eq("id", id).single();
-      if (error) return alert("No se pudo cargar el partido: " + error.message);
-      openPartidoForm(data);
-    } else if (tbody.id === "t-tabla-body") {
-      const { data, error } = await window.sb.from("torneos").select("*").eq("id", id).single();
-      if (error) return alert("No se pudo cargar el torneo: " + error.message);
-      openTorneoForm(data);
-    }
-  });
-
-  // ---------- Helpers ----------
-  function deriveFromDate(fechaStr) {
-    const [y, mo, d] = fechaStr.split("-").map(Number);
-    const dt = new Date(Date.UTC(y, mo - 1, d, 12));
-    const diaNum = dt.getUTCDay();
-    return { anio: y, mes: mo, dia: DIAS_ES[diaNum] };
-  }
-  function escapeHtml(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
-
-  // ---------- Formulario PARTIDO ----------
-  function openPartidoForm(record) {
-    const isEdit = !!record;
-    const r = record || { fecha: "", cancha: "", formato: "", companiero: "", rivales: "", resultado: "PG" };
-    openModal(`
-      <h2 class="admin-title">${isEdit ? "Editar partido #" + r.id : "Nuevo partido"}</h2>
-      <form id="admin-partido-form" class="admin-form">
-        <label>Fecha
-          <input type="date" name="fecha" required value="${escapeHtml(r.fecha)}">
-        </label>
-        <div class="admin-row-2">
-          <label>Cancha
-            <input type="text" name="cancha" required value="${escapeHtml(r.cancha)}" placeholder="Ej: NODO">
-          </label>
-          <label>Formato
-            <input type="text" name="formato" required value="${escapeHtml(r.formato)}" placeholder="Ej: TURNO">
-          </label>
-        </div>
-        <label>Compañero
-          <input type="text" name="companiero" required value="${escapeHtml(r.companiero)}">
-        </label>
-        <label>Rivales <span class="admin-hint-inline">(dos jugadores separados por " - ")</span>
-          <input type="text" name="rivales" required value="${escapeHtml(r.rivales)}" placeholder="Nombre1 - Nombre2">
-        </label>
-        <label>Resultado
-          <select name="resultado" required>
-            <option value="PG" ${r.resultado === "PG" ? "selected" : ""}>✅ Ganado (PG)</option>
-            <option value="PP" ${r.resultado === "PP" ? "selected" : ""}>❌ Perdido (PP)</option>
-          </select>
-        </label>
-        <p class="admin-err" id="admin-partido-err" hidden></p>
-        <div class="admin-actions ${isEdit ? "with-delete" : ""}">
-          ${isEdit ? '<button type="button" class="admin-btn danger" id="admin-partido-del">🗑️ Eliminar</button>' : ""}
-          <button type="button" class="admin-btn ghost" data-close>Cancelar</button>
-          <button type="submit" class="admin-btn primary">${isEdit ? "Guardar" : "Crear"}</button>
-        </div>
-      </form>
-    `);
-    modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
-    $("#admin-partido-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      const fecha = fd.get("fecha");
-      const { anio, mes, dia } = deriveFromDate(fecha);
-      const payload = {
-        fecha,
-        anio, mes, dia,
-        cancha: (fd.get("cancha") || "").trim().toUpperCase(),
-        formato: (fd.get("formato") || "").trim().toUpperCase(),
-        companiero: (fd.get("companiero") || "").trim(),
-        rivales: (fd.get("rivales") || "").trim(),
-        resultado: fd.get("resultado")
-      };
-      await submitRecord("partidos", isEdit ? r.id : null, payload, "#admin-partido-err", e.target);
-    });
-    if (isEdit) {
-      $("#admin-partido-del").addEventListener("click", async () => {
-        if (!confirm(`¿Eliminar el partido #${r.id}? Esta acción no se puede deshacer.`)) return;
-        await deleteRecord("partidos", r.id, "#admin-partido-err");
-      });
-    }
-  }
-
-  // ---------- Formulario TORNEO ----------
-  function triSelect(name, val) {
-    const opts = [
-      { v: "",     label: "— No jugó" },
-      { v: "true", label: "✅ Ganó" },
-      { v: "false", label: "❌ Perdió" }
-    ];
-    const cur = val === true ? "true" : val === false ? "false" : "";
-    return `<select name="${name}">${opts.map(o =>
-      `<option value="${o.v}" ${cur === o.v ? "selected" : ""}>${o.label}</option>`
-    ).join("")}</select>`;
-  }
-
-  function openTorneoForm(record) {
-    const isEdit = !!record;
-    const r = record || {
-      fecha: "", organizador: "", companiero: "", categoria: "",
-      zona: null, octavos: null, cuartos: null, semifinal: null, final: null, puesto: null
-    };
-    openModal(`
-      <h2 class="admin-title">${isEdit ? "Editar torneo #" + r.id : "Nuevo torneo"}</h2>
-      <form id="admin-torneo-form" class="admin-form">
-        <label>Fecha
-          <input type="date" name="fecha" required value="${escapeHtml(r.fecha)}">
-        </label>
-        <div class="admin-row-2">
-          <label>Organizador
-            <input type="text" name="organizador" required value="${escapeHtml(r.organizador)}" placeholder="Ej: NODO">
-          </label>
-          <label>Categoría
-            <input type="text" name="categoria" required value="${escapeHtml(r.categoria)}" placeholder="Ej: 8va, +13">
-          </label>
-        </div>
-        <label>Compañero
-          <input type="text" name="companiero" required value="${escapeHtml(r.companiero)}">
-        </label>
-
-        <fieldset class="admin-fieldset">
-          <legend>Etapas jugadas</legend>
-          <div class="admin-row-etapas">
-            <label>Zona ${triSelect("zona", r.zona)}</label>
-            <label>Octavos ${triSelect("octavos", r.octavos)}</label>
-            <label>Cuartos ${triSelect("cuartos", r.cuartos)}</label>
-            <label>Semifinal ${triSelect("semifinal", r.semifinal)}</label>
-            <label>Final ${triSelect("final", r.final)}</label>
-          </div>
-        </fieldset>
-
-        <label>Puesto final
-          <select name="puesto">
-            <option value=""           ${!r.puesto ? "selected" : ""}>— Sin podio</option>
-            <option value="campeon"    ${r.puesto === "campeon"    ? "selected" : ""}>🥇 Campeón</option>
-            <option value="subcampeon" ${r.puesto === "subcampeon" ? "selected" : ""}>🥈 Subcampeón</option>
-            <option value="tercero"    ${r.puesto === "tercero"    ? "selected" : ""}>🥉 Tercero</option>
-          </select>
-        </label>
-
-        <p class="admin-err" id="admin-torneo-err" hidden></p>
-        <div class="admin-actions ${isEdit ? "with-delete" : ""}">
-          ${isEdit ? '<button type="button" class="admin-btn danger" id="admin-torneo-del">🗑️ Eliminar</button>' : ""}
-          <button type="button" class="admin-btn ghost" data-close>Cancelar</button>
-          <button type="submit" class="admin-btn primary">${isEdit ? "Guardar" : "Crear"}</button>
-        </div>
-      </form>
-    `);
-    modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
-    $("#admin-torneo-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      const fecha = fd.get("fecha");
-      const { anio, mes, dia } = deriveFromDate(fecha);
-      const tri = (name) => {
-        const v = fd.get(name);
-        if (v === "true") return true;
-        if (v === "false") return false;
-        return null;
-      };
-      const puestoRaw = fd.get("puesto");
-      const payload = {
-        fecha,
-        anio, mes, dia,
-        organizador: (fd.get("organizador") || "").trim().toUpperCase(),
-        categoria: (fd.get("categoria") || "").trim(),
-        companiero: (fd.get("companiero") || "").trim(),
-        zona: tri("zona"),
-        octavos: tri("octavos"),
-        cuartos: tri("cuartos"),
-        semifinal: tri("semifinal"),
-        final: tri("final"),
-        puesto: puestoRaw || null
-      };
-      await submitRecord("torneos", isEdit ? r.id : null, payload, "#admin-torneo-err", e.target);
-    });
-    if (isEdit) {
-      $("#admin-torneo-del").addEventListener("click", async () => {
-        if (!confirm(`¿Eliminar el torneo #${r.id}? Esta acción no se puede deshacer.`)) return;
-        await deleteRecord("torneos", r.id, "#admin-torneo-err");
-      });
-    }
-  }
-
-  // ---------- Submit genérico ----------
-  async function submitRecord(table, id, payload, errSel, form) {
-    const err = $(errSel);
-    err.hidden = true;
-    const btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.textContent = "Guardando…";
-
-    let res;
-    if (id == null) res = await window.sb.from(table).insert(payload);
-    else            res = await window.sb.from(table).update(payload).eq("id", id);
-
-    if (res.error) {
-      err.textContent = "Error: " + res.error.message;
-      err.hidden = false;
-      btn.disabled = false; btn.textContent = id == null ? "Crear" : "Guardar";
-      return;
-    }
-    location.reload();
-  }
-
-  async function deleteRecord(table, id, errSel) {
-    const { error } = await window.sb.from(table).delete().eq("id", id);
-    if (error) {
-      const err = $(errSel);
-      err.textContent = "No se pudo eliminar: " + error.message;
-      err.hidden = false;
-      return;
-    }
-    location.reload();
-  }
-})();
+  .admin-toggle-label,
+  .env-toggle-label { display: none; }
+  .admin-modal { padding: 20px; }
+  .admin-title { font-size: 22px; }
+  .admin-row-2, .admin-row-etapas { grid-template-columns: 1fr; }
+  .admin-actions { flex-direction: column-reverse; }
+  .admin-actions.with-delete { flex-direction: column-reverse; }
+  .admin-btn { width: 100%; }
+}
