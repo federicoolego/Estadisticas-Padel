@@ -71,6 +71,11 @@
               <ul class="combo-list"></ul>
             </div>
           </div></div>
+        <div class="field"><label>Resultado</label>
+          <div class="combo" id="combo-resultado">
+            <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Resultado">
+            <div class="combo-panel"><ul class="combo-list"></ul></div>
+          </div></div>
         <button class="reset" id="reset">Limpiar filtros</button>
       </section>
 
@@ -242,8 +247,8 @@
         });
         contents.forEach(c => c.classList.toggle("active", c.id === "tab-" + name));
 
-        // WhatsApp: solo funcional en Partidos por ahora
-        if (fab) fab.style.display = (name === "partidos") ? "" : "none";
+        // WhatsApp: visible en ambas pestañas
+        // El botón detecta la tab activa al hacer click
 
         // Lazy init de la tab correspondiente
         if (name === "partidos" && typeof window.initPartidos === "function") window.initPartidos();
