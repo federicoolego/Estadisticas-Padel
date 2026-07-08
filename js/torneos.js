@@ -514,4 +514,160 @@
   }
 
   window.initTorneos = init;
+
+  // ================= WhatsApp: compartir estadísticas de torneos =================
+  (function () {
+    const FILTER_LABELS_T = {
+      anio: "Año", mes: "Mes", organizador: "Organizador",
+      categoria: "Categoría", companiero: "Compañero", puesto: "Puesto"
+    };
+    const FILTER_ORDER_T = ["anio", "mes", "organizador", "categoria", "companiero", "puesto"];
+    const PUESTO_SHORT = { campeon: "Campeón", subcampeon: "Subcampeón", tercero: "Tercero", sin_podio: "Sin podio" };
+
+    function txt(id) { const e = document.getElementById(id); return e ? e.textContent.trim() : "–"; }
+
+    function shownFiltersTorneos() {
+      const out = [];
+      FILTER_ORDER_T.forEach(key => {
+        const arr = filters[key] || [];
+        if (arr.length) {
+          const vals = arr.map(v => {
+            if (key === "mes") { const n = parseInt(v, 10); return MESES[n] || v; }
+            if (key === "puesto") return PUESTO_SHORT[v] || v;
+            return String(v);
+          }).join(", ");
+          out.push((FILTER_LABELS_T[key] || key) + ": " + vals);
+        }
+      });
+      return out;
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function buildTorneosImage() {
+      const DPR = 2;
+      const W = 1080, H = 1080;
+      const cv = document.createElement("canvas");
+      cv.width = W * DPR; cv.height = H * DPR;
+      const ctx = cv.getContext("2d");
+      ctx.scale(DPR, DPR);
+
+      // fondo
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, "#0d1117"); g.addColorStop(1, "#0a0e14");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      // glow dorado arriba-izq
+      const rg = ctx.createRadialGradient(150, -40, 0, 150, -40, 520);
+      rg.addColorStop(0, "rgba(251,191,36,0.18)"); rg.addColorStop(1, "rgba(251,191,36,0)");
+      ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+
+      const PAD = 64;
+      // eyebrow
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "600 22px Inter, sans-serif";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText("CIRCUITO DE TORNEOS", PAD, 96);
+      // título
+      ctx.fillStyle = "#e6edf3";
+      ctx.font = "700 76px 'Barlow Condensed', Arial Narrow, sans-serif";
+      ctx.fillText("MIS TORNEOS DE PÁDEL", PAD, 168);
+      // última actualización
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "500 24px Inter, sans-serif";
+      ctx.fillText(txt("t-last-update") || "", PAD, 208);
+
+      // filtros activos
+      const fl = shownFiltersTorneos();
+      let filterLine = fl.length ? fl.join("  ·  ") : "Todos los torneos";
+      ctx.fillStyle = "#9aa4b0";
+      ctx.font = "500 22px Inter, sans-serif";
+      if (ctx.measureText(filterLine).width > W - PAD * 2) {
+        while (ctx.measureText(filterLine + "…").width > W - PAD * 2 && filterLine.length) filterLine = filterLine.slice(0, -1);
+        filterLine += "…";
+      }
+      ctx.fillText("Filtros · " + filterLine, PAD, 248);
+
+      const cards = [
+        { label: "TORNEOS JUGADOS",        value: txt("t-kpi-tj"),      color: "#e6edf3" },
+        { label: "CAMPEÓN 🥇",             value: txt("t-kpi-camp"),    color: "#fbbf24" },
+        { label: "SUBCAMPEÓN 🥈",          value: txt("t-kpi-sub"),     color: "#cbd5e1" },
+        { label: "PODIOS TOTALES",         value: txt("t-kpi-podios"),  color: "#e6edf3" },
+        { label: "% PODIOS",               value: txt("t-kpi-eff"),     color: "#4ade80" },
+        { label: "FINALES JUGADAS",        value: txt("t-kpi-finales"), color: "#e6edf3" },
+        { label: "SEMIS ALCANZADAS",       value: txt("t-kpi-semis"),   color: "#e6edf3" },
+        { label: "INSTANCIA MÁS FRECUENTE", value: txt("t-kpi-inst"),  color: "#fbbf24" },
+      ];
+
+      const cols = 2, gap = 26;
+      const gridTop = 300, gridBottom = 1000;
+      const cw = (W - PAD * 2 - gap * (cols - 1)) / cols;
+      const rowCount = Math.ceil(cards.length / cols);
+      const ch = (gridBottom - gridTop - gap * (rowCount - 1)) / rowCount;
+
+      cards.forEach((c, i) => {
+        const cx = PAD + (i % cols) * (cw + gap);
+        const cy = gridTop + Math.floor(i / cols) * (ch + gap);
+        roundRect(ctx, cx, cy, cw, ch, 18);
+        ctx.fillStyle = "#161b22"; ctx.fill();
+        ctx.strokeStyle = "#2a313c"; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = c.color;
+        roundRect(ctx, cx, cy, 6, ch, 3); ctx.fill();
+        ctx.fillStyle = "#8b949e";
+        ctx.font = "600 20px Inter, sans-serif";
+        ctx.fillText(c.label, cx + 30, cy + 44);
+        ctx.fillStyle = c.color;
+        ctx.font = "700 72px 'Barlow Condensed', Arial Narrow, sans-serif";
+        ctx.fillText(c.value.replace(/\s+/g, " "), cx + 30, cy + ch - 30);
+      });
+
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "500 22px Inter, sans-serif";
+      ctx.fillText("Estadísticas de Pádel · Federico Olego", PAD, 1048);
+
+      return cv;
+    }
+
+    function canvasToBlob(cv) {
+      return new Promise(res => cv.toBlob(res, "image/png"));
+    }
+
+    async function shareTorneosStats() {
+      const fab = document.getElementById("wa-share");
+      if (fab) fab.classList.add("busy");
+      try {
+        if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (_) {} }
+        const cv = buildTorneosImage();
+        const blob = await canvasToBlob(cv);
+        const file = new File([blob], "mis-estadisticas-torneos.png", { type: "image/png" });
+        const camp = txt("t-kpi-camp"), sub = txt("t-kpi-sub"), eff = txt("t-kpi-eff");
+        const text = "Mis estadísticas de torneos 🏆 " + camp + " campeón · " + sub + " subcampeón · " + eff + " podios";
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text });
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+        console.error(err);
+        alert("No se pudo generar la imagen para compartir.");
+      } finally {
+        if (fab) fab.classList.remove("busy");
+      }
+    }
+
+    window.shareTorneosStats = shareTorneosStats;
+  })();
 })();

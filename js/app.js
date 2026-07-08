@@ -5,7 +5,7 @@ const MESES = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
 let ALL = [];
 let charts = {};
 
-const filters = { companiero: [], rival: [], anio: [], mes: [], cancha: [], formato: [] };
+const filters = { companiero: [], rival: [], anio: [], mes: [], cancha: [], formato: [], resultado: [] };
 
 const el = (id) => document.getElementById(id);
 
@@ -44,6 +44,7 @@ function buildFilterOptions() {
   setupCombo("combo-mes", uniqueSorted("mes").map(n => [String(n), MESES[n]]), "mes", "Todos");
   setupCombo("combo-cancha", uniqueSorted("cancha").map(v => [v, v]), "cancha", "Todas");
   setupCombo("combo-formato", uniqueSorted("formato").map(v => [v, v]), "formato", "Todos");
+  setupCombo("combo-resultado", [["PG", "✅ Ganado"], ["PP", "❌ Perdido"]], "resultado", "Todos");
 }
 
 // ---- Combobox multi-selección con checkboxes ----
@@ -169,7 +170,8 @@ function applyFilters() {
     (!f.anio.length || f.anio.includes(String(m.anio))) &&
     (!f.mes.length || f.mes.includes(String(m.mes))) &&
     (!f.cancha.length || f.cancha.includes(m.cancha)) &&
-    (!f.formato.length || f.formato.includes(m.formato))
+    (!f.formato.length || f.formato.includes(m.formato)) &&
+    (!f.resultado.length || f.resultado.includes(m.resultado))
   );
 }
 
@@ -497,6 +499,12 @@ window.initPartidos = init;
   // No compartir si fue un arrastre
   fab.addEventListener("click", e => {
     if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; return; }
+    // Delegar a la tab activa
+    const torneosTab = document.getElementById("tab-torneos");
+    if (torneosTab && torneosTab.classList.contains("active")) {
+      if (typeof window.shareTorneosStats === "function") window.shareTorneosStats();
+      return;
+    }
     shareStats();
   });
 
@@ -504,15 +512,18 @@ window.initPartidos = init;
   function txt(id) { const e = el(id); return e ? e.textContent.trim() : "–"; }
   const FILTER_LABELS = {
     anio: "Año", mes: "Mes", formato: "Formato",
-    cancha: "Cancha", companiero: "Compañero", rival: "Rival"
+    cancha: "Cancha", companiero: "Compañero", rival: "Rival", resultado: "Resultado"
   };
   // orden de aparición de los filtros
-  const FILTER_ORDER = ["anio", "mes", "formato", "cancha", "companiero", "rival"];
+  const FILTER_ORDER = ["anio", "mes", "formato", "cancha", "companiero", "rival", "resultado"];
 
   function labelForValue(filterKey, val) {
     if (filterKey === "mes") {
       const n = parseInt(val, 10);
       return (typeof MESES !== "undefined" && MESES[n]) ? MESES[n] : String(val);
+    }
+    if (filterKey === "resultado") {
+      return val === "PG" ? "Ganado" : val === "PP" ? "Perdido" : val;
     }
     return String(val);
   }
