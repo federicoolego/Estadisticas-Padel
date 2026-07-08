@@ -595,7 +595,7 @@
     "cancha": "EL CLASICO",
     "formato": "TURNO",
     "companiero": "Cesar Melotta",
-    "rivales": "Beto - David Sanchez",
+    "rivales": "Beto Quaglini - David Sanchez",
     "resultado": "PG",
     "dia": "Viernes"
   },
@@ -1027,7 +1027,7 @@
     "cancha": "EL CLASICO",
     "formato": "TURNO",
     "companiero": "German Villalba",
-    "rivales": "Beto - David Sanchez",
+    "rivales": "Beto Quaglini - David Sanchez",
     "resultado": "PG",
     "dia": "Sábado"
   },
@@ -1339,7 +1339,7 @@
     "cancha": "EL CLASICO",
     "formato": "TURNO",
     "companiero": "Franco Olego",
-    "rivales": "Beto - German Villalba",
+    "rivales": "Beto Quaglini - German Villalba",
     "resultado": "PP",
     "dia": "Miércoles"
   },
@@ -1543,7 +1543,7 @@
     "cancha": "EL CLASICO",
     "formato": "TURNO",
     "companiero": "German Villalba",
-    "rivales": "Beto - Sergio Gutierrez",
+    "rivales": "Beto Quaglini - Sergio Gutierrez",
     "resultado": "PG",
     "dia": "Miércoles"
   },
@@ -2458,5 +2458,17 @@
     "rivales": "Gonzalo Mendoza - Lucho Vitali",
     "resultado": "PG",
     "dia": "Martes"
+  },
+  {
+    "id": 206,
+    "fecha": "2026-07-09",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Cesar Melotta - Franco Olego",
+    "resultado": "PP",
+    "dia": "Jueves"
   }
 ]
