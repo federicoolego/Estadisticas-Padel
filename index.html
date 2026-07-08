@@ -9,8 +9,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
+
+  <!-- Botón admin flotante (arriba a la derecha) -->
+  <button id="admin-toggle" class="admin-toggle" aria-label="Modo administrador" title="Modo administrador">
+    <span class="admin-toggle-icon">🔒</span>
+    <span class="admin-toggle-label">Admin</span>
+  </button>
+
   <div class="wrap">
 
     <!-- Tabs -->
@@ -27,6 +35,7 @@
           <h1>Mis Partidos<br>de Pádel</h1>
           <p class="sub">Federico Olego</p>
           <p class="updated" id="last-update"></p>
+          <button class="admin-only admin-new-btn" data-new="partido">➕ Nuevo partido</button>
         </div>
         <div class="record-badge">
           <div class="big" id="record"></div>
@@ -131,6 +140,7 @@
           <h1>Mis Torneos<br>de Pádel</h1>
           <p class="sub">Federico Olego</p>
           <p class="updated" id="t-last-update"></p>
+          <button class="admin-only admin-new-btn" data-new="torneo">➕ Nuevo torneo</button>
         </div>
         <div class="record-badge">
           <div class="big" id="t-record"></div>
@@ -229,11 +239,17 @@
     </svg>
   </button>
 
+  <!-- Contenedor de modales admin (lo llena admin.js) -->
+  <div id="admin-modal-root"></div>
+
+  <!-- Supabase SDK + cliente -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-client.js"></script>
+  <script src="js/supabase-client.js?v=1"></script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="js/app.js?v=3"></script>
-  <script src="js/torneos.js?v=1"></script>
+  <script src="js/app.js?v=4"></script>
+  <script src="js/torneos.js?v=2"></script>
+  <script src="js/admin.js?v=1"></script>
   <script>
     // ================= Tabs switcher =================
     (function () {
