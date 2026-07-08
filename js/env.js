@@ -13,6 +13,15 @@
   const stored = localStorage.getItem(STORAGE_KEY);
   const MODE = VALID.has(stored) ? stored : "local"; // ← default: Local
 
+  // En modo Prod, "partidos" y "torneos" leen de las views aplanadas que
+  // devuelven el mismo shape que los JSON originales (con strings resueltos
+  // desde los catálogos normalizados). La escritura sigue yendo contra las
+  // tablas base — eso lo maneja admin.js directamente.
+  const READ_TABLE = {
+    partidos: "partidos_view",
+    torneos:  "torneos_view"
+  };
+
   const APP_ENV = {
     MODE,
     isProd: MODE === "prod",
@@ -32,8 +41,9 @@
         if (!window.sb) {
           throw new Error("Modo Producción activo pero el cliente Supabase no está inicializado. Revisá js/supabase-client.js.");
         }
+        const source = READ_TABLE[name] || name;
         const { data, error } = await window.sb
-          .from(name)
+          .from(source)
           .select("*")
           .order("id", { ascending: true });
         if (error) throw error;
