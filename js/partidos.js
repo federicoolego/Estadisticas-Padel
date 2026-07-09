@@ -236,7 +236,28 @@ function stats(list) {
   const pp = pj - pg;
   const dif = pg - pp;
   const eff = pj ? pg / pj : 0;
-  return { pj, pg, pp, dif, eff };
+
+  // Rango de fechas y promedio de partidos por día
+  let fechaMin = null, fechaMax = null, dias = 0, prom = 0;
+  if (pj > 0) {
+    const times = list
+      .map(m => {
+        if (!m.fecha) return null;
+        const [y, mo, d] = m.fecha.split("-").map(Number);
+        return new Date(y, mo - 1, d).getTime();
+      })
+      .filter(t => t !== null && !isNaN(t));
+    if (times.length) {
+      const tMin = Math.min(...times);
+      const tMax = Math.max(...times);
+      fechaMin = new Date(tMin);
+      fechaMax = new Date(tMax);
+      dias = Math.round((tMax - tMin) / 86400000);
+      // Si todos los partidos son el mismo día, evitar división por cero
+      prom = pj / Math.max(dias, 1);
+    }
+  }
+  return { pj, pg, pp, dif, eff, fechaMin, fechaMax, dias, prom };
 }
 
 // Rachas sobre la lista filtrada, ordenada cronológicamente por # (id).
@@ -274,6 +295,24 @@ function renderKPIs(data) {
   el("kpi-pp").textContent = s.pp;
   el("kpi-dif").textContent = (s.dif > 0 ? "+" : "") + s.dif;
   el("kpi-eff").innerHTML = (s.eff * 100).toFixed(1) + "<small>%</small>";
+
+  // Promedio de partidos por día en el rango filtrado
+  const promEl = el("kpi-prom");
+  const promSub = el("kpi-prom-sub");
+  if (s.pj === 0 || !s.fechaMin) {
+    promEl.textContent = "–";
+    promSub.textContent = "";
+  } else {
+    promEl.innerHTML = s.prom.toFixed(2) + "<small>/día</small>";
+    const fmt = d => String(d.getDate()).padStart(2, "0") + "/" +
+                    String(d.getMonth() + 1).padStart(2, "0") + "/" +
+                    d.getFullYear();
+    if (s.dias === 0) {
+      promSub.textContent = `${fmt(s.fechaMin)} · mismo día`;
+    } else {
+      promSub.textContent = `${fmt(s.fechaMax)} – ${fmt(s.fechaMin)} · ${s.dias} ${s.dias === 1 ? "día" : "días"}`;
+    }
+  }
 
   const rp = streak(data, "PG");
   const rn = streak(data, "PP");
