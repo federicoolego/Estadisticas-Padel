@@ -245,8 +245,10 @@
       throw new Error(error.message);
     }
     const arr = catalogCache[catalogName];
-    arr.push(data);
-    arr.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    if (arr) {
+      arr.push(data);
+      arr.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    }
     return data;
   }
 
@@ -260,9 +262,11 @@
       throw new Error(error.message);
     }
     const arr = catalogCache[catalogName];
-    const idx = arr.findIndex(x => x.id === id);
-    if (idx >= 0) arr[idx] = data;
-    arr.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    if (arr) {
+      const idx = arr.findIndex(x => x.id === id);
+      if (idx >= 0) arr[idx] = data;
+      arr.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    }
     return data;
   }
 
@@ -273,8 +277,10 @@
       throw new Error(error.message);
     }
     const arr = catalogCache[catalogName];
-    const idx = arr.findIndex(x => x.id === id);
-    if (idx >= 0) arr.splice(idx, 1);
+    if (arr) {
+      const idx = arr.findIndex(x => x.id === id);
+      if (idx >= 0) arr.splice(idx, 1);
+    }
   }
 
   // ====================================================================
