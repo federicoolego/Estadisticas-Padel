@@ -664,7 +664,7 @@ window.initPartidos = init;
       { label: "GANADOS", value: txt("kpi-pg"), color: "#4ade80" },
       { label: "PERDIDOS", value: txt("kpi-pp"), color: "#f87171" },
       { label: "DIFERENCIA", value: txt("kpi-dif"), color: "#e6edf3" },
-      { label: "DÍAS ENTRE PARTIDOS", value: txt("kpi-prom"), color: "#e6edf3" },
+      { label: "PROMEDIO DE DÍAS POR PARTIDO", value: txt("kpi-prom"), color: "#e6edf3" },
       { label: "EFECTIVIDAD", value: eff, color: "#4ade80" },
       { label: "MEJOR RACHA", value: txt("kpi-rp"), color: "#4ade80" },
       { label: "PEOR RACHA", value: txt("kpi-rn"), color: "#f87171" },
