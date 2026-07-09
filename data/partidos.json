@@ -715,7 +715,7 @@
     "cancha": "NODO",
     "formato": "TURNO",
     "companiero": "Mauri Costa",
-    "rivales": "Desconocidos",
+    "rivales": "Desconocido 1 - Desconocido 2",
     "resultado": "PG",
     "dia": "Martes"
   },
@@ -1423,7 +1423,7 @@
     "cancha": "EL CLASICO",
     "formato": "TURNO MIXTO",
     "companiero": "Florencia Caletrio",
-    "rivales": "German Villalba - Linda",
+    "rivales": "German Villalba - Linda Buiter",
     "resultado": "PG",
     "dia": "Viernes"
   },
@@ -1795,7 +1795,7 @@
     "cancha": "EL CLASICO",
     "formato": "TURNO MIXTO",
     "companiero": "Florencia Caletrio",
-    "rivales": "German Villalba - Linda",
+    "rivales": "German Villalba - Linda Buiter",
     "resultado": "PG",
     "dia": "Domingo"
   },
@@ -1855,7 +1855,7 @@
     "cancha": "EL CLASICO 2",
     "formato": "TURNO MIXTO",
     "companiero": "Florencia Caletrio",
-    "rivales": "German Villalba - Linda",
+    "rivales": "German Villalba - Linda Buiter",
     "resultado": "PP",
     "dia": "Viernes"
   },
@@ -1867,7 +1867,7 @@
     "cancha": "EL CLASICO 2",
     "formato": "TURNO MIXTO",
     "companiero": "Florencia Caletrio",
-    "rivales": "German Villalba - Linda",
+    "rivales": "German Villalba - Linda Buiter",
     "resultado": "PG",
     "dia": "Viernes"
   },
