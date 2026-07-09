@@ -296,7 +296,7 @@ function renderKPIs(data) {
   el("kpi-dif").textContent = (s.dif > 0 ? "+" : "") + s.dif;
   el("kpi-eff").innerHTML = (s.eff * 100).toFixed(1) + "<small>%</small>";
 
-  // Promedio de partidos por día en el rango filtrado
+  // Frecuencia de juego: días entre partidos (métrica principal) + partidos por día (secundaria)
   const promEl = el("kpi-prom");
   const promSub = el("kpi-prom-sub");
   const promCard = el("kpi-card-prom");
@@ -305,15 +305,17 @@ function renderKPIs(data) {
     promSub.textContent = "";
     promCard.removeAttribute("data-tip");
   } else {
-    promEl.innerHTML = s.prom.toFixed(2) + "<small>/día</small>";
     const fmt = d => String(d.getDate()).padStart(2, "0") + "/" +
                     String(d.getMonth() + 1).padStart(2, "0") + "/" +
                     d.getFullYear();
     if (s.dias === 0) {
+      promEl.innerHTML = "0<small> días/partido</small>";
       promSub.textContent = "mismo día";
       promCard.setAttribute("data-tip", fmt(s.fechaMin));
     } else {
-      promSub.textContent = `${s.dias} ${s.dias === 1 ? "día" : "días"}`;
+      const diasPorPartido = s.dias / s.pj;
+      promEl.innerHTML = diasPorPartido.toFixed(2) + "<small> días/partido</small>";
+      promSub.textContent = `${s.dias} ${s.dias === 1 ? "día" : "días"} · ${s.prom.toFixed(2)}/día`;
       promCard.setAttribute("data-tip", `${fmt(s.fechaMax)} – ${fmt(s.fechaMin)}`);
     }
   }
