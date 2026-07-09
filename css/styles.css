@@ -243,8 +243,9 @@ header.hero {
   overflow: hidden;
 }
 /* tarjeta con tooltip: necesita overflow visible */
-#kpi-card-actual { overflow: visible; cursor: default; }
-#kpi-card-actual[data-tip]::after {
+#kpi-card-actual, #kpi-card-prom { overflow: visible; cursor: default; }
+#kpi-card-actual[data-tip]::after,
+#kpi-card-prom[data-tip]::after {
   content: attr(data-tip);
   position: absolute;
   bottom: calc(100% + 8px);
@@ -263,7 +264,8 @@ header.hero {
   transition: opacity .15s, transform .15s;
   z-index: 20;
 }
-#kpi-card-actual:hover[data-tip]::after {
+#kpi-card-actual:hover[data-tip]::after,
+#kpi-card-prom:hover[data-tip]::after {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
