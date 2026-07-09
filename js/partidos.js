@@ -239,7 +239,7 @@ function stats(list) {
 
   // Rango de fechas, promedio y máxima racha de días sin jugar
   let fechaMin = null, fechaMax = null, dias = 0, prom = 0;
-  let maxSinJugar = 0, vecesMax = 0;
+  let maxSinJugar = 0, vecesMax = 0, gapsMax = [], diasRangoSinJugar = 0;
   if (pj > 0) {
     const times = list
       .map(m => {
@@ -256,16 +256,23 @@ function stats(list) {
       dias = Math.round((tMax - tMin) / 86400000);
       prom = pj / Math.max(dias, 1);
 
-      // Gaps entre días consecutivos con partido
+      // Gaps entre días consecutivos con partido, guardando el rango exacto
       const uniqDays = [...new Set(times.map(t => Math.round(t / 86400000)))].sort((a, b) => a - b);
       const gaps = [];
       for (let i = 1; i < uniqDays.length; i++) {
         const gap = uniqDays[i] - uniqDays[i - 1] - 1;
-        if (gap > 0) gaps.push(gap);
+        if (gap > 0) {
+          gaps.push({
+            length: gap,
+            fromDay: uniqDays[i - 1] + 1,
+            toDay: uniqDays[i] - 1,
+            openEnded: false,
+          });
+        }
       }
 
-      // Si el último partido del filtro coincide con el último partido real del dataset,
-      // extender el tramo abierto desde ese partido hasta hoy.
+      // Rango efectivo del KPI "sin jugar": si se extiende hasta hoy, usa hoy como fin
+      diasRangoSinJugar = dias;
       const allTimes = ALL
         .map(m => {
           if (!m.fecha) return null;
@@ -279,16 +286,25 @@ function stats(list) {
         const hoyDay = Math.round(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime() / 86400000);
         const lastDay = uniqDays[uniqDays.length - 1];
         const gapAbierto = hoyDay - lastDay;
-        if (gapAbierto > 0) gaps.push(gapAbierto);
+        if (gapAbierto > 0) {
+          gaps.push({
+            length: gapAbierto,
+            fromDay: lastDay + 1,
+            toDay: hoyDay,
+            openEnded: true,
+          });
+          diasRangoSinJugar = hoyDay - uniqDays[0];
+        }
       }
 
       if (gaps.length) {
-        maxSinJugar = Math.max(...gaps);
-        vecesMax = gaps.filter(g => g === maxSinJugar).length;
+        maxSinJugar = Math.max(...gaps.map(g => g.length));
+        gapsMax = gaps.filter(g => g.length === maxSinJugar);
+        vecesMax = gapsMax.length;
       }
     }
   }
-  return { pj, pg, pp, dif, eff, fechaMin, fechaMax, dias, prom, maxSinJugar, vecesMax };
+  return { pj, pg, pp, dif, eff, fechaMin, fechaMax, dias, prom, maxSinJugar, vecesMax, gapsMax, diasRangoSinJugar };
 }
 
 // Rachas sobre la lista filtrada, ordenada cronológicamente por # (id).
@@ -353,16 +369,29 @@ function renderKPIs(data) {
 
   // Días sin jugar dentro del rango filtrado
   const sinEl = el("kpi-sinjugar");
+  const sinSub = el("kpi-sinjugar-sub");
   const sinCard = el("kpi-card-sinjugar");
   if (s.pj === 0 || !s.fechaMin) {
     sinEl.textContent = "–";
+    sinSub.textContent = "";
     sinCard.removeAttribute("data-tip");
   } else {
     sinEl.innerHTML = s.maxSinJugar + (s.maxSinJugar ? ` <small>(${s.vecesMax})</small>` : "");
-    const fmtDate = d => String(d.getDate()).padStart(2, "0") + "/" +
-                        String(d.getMonth() + 1).padStart(2, "0") + "/" +
-                        d.getFullYear();
-    sinCard.setAttribute("data-tip", `${fmtDate(s.fechaMin)} – ${fmtDate(s.fechaMax)}`);
+    sinSub.textContent = `${s.diasRangoSinJugar} ${s.diasRangoSinJugar === 1 ? "día" : "días"}`;
+    if (s.maxSinJugar && s.gapsMax.length) {
+      const fmtDay = dayNum => {
+        const d = new Date(dayNum * 86400000);
+        return String(d.getUTCDate()).padStart(2, "0") + "/" +
+               String(d.getUTCMonth() + 1).padStart(2, "0") + "/" +
+               d.getUTCFullYear();
+      };
+      const lineas = s.gapsMax.map(g =>
+        `${fmtDay(g.fromDay)} – ${g.openEnded ? "HOY" : fmtDay(g.toDay)}`
+      );
+      sinCard.setAttribute("data-tip", lineas.join("\n"));
+    } else {
+      sinCard.removeAttribute("data-tip");
+    }
   }
 
   const rp = streak(data, "PG");
