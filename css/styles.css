@@ -233,7 +233,7 @@ header.hero {
   margin-bottom: 16px;
 }
 .kpis-main { grid-template-columns: repeat(5, 1fr); }
-.kpis-streak { grid-template-columns: repeat(3, 1fr); margin-bottom: 28px; }
+.kpis-streak { grid-template-columns: repeat(4, 1fr); margin-bottom: 28px; }
 .kpi {
   background: var(--panel);
   border: 1px solid var(--border);

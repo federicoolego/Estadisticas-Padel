@@ -655,21 +655,22 @@ window.initPartidos = init;
     }
     ctx.fillText("Filtros · " + filterLine, PAD, 248);
 
-    // datos KPI
+    // datos KPI (3 columnas x 3 filas)
     const eff = txt("kpi-eff");
     const cards = [
       { label: "PARTIDOS JUGADOS", value: txt("kpi-pj"), color: "#e6edf3" },
       { label: "GANADOS", value: txt("kpi-pg"), color: "#4ade80" },
       { label: "PERDIDOS", value: txt("kpi-pp"), color: "#f87171" },
       { label: "DIFERENCIA", value: txt("kpi-dif"), color: "#e6edf3" },
+      { label: "PROMEDIO PARTIDOS", value: txt("kpi-prom"), color: "#e6edf3" },
       { label: "EFECTIVIDAD", value: eff, color: "#4ade80" },
       { label: "MEJOR RACHA", value: txt("kpi-rp"), color: "#4ade80" },
       { label: "PEOR RACHA", value: txt("kpi-rn"), color: "#f87171" },
       { label: "RACHA ACTUAL", value: txt("kpi-ra"), color: el("kpi-card-actual").classList.contains("loss") ? "#f87171" : "#4ade80" },
     ];
 
-    // grilla 2 columnas x 4 filas
-    const cols = 2, gap = 26;
+    // grilla 3 columnas x 3 filas
+    const cols = 3, gap = 22;
     const gridTop = 300, gridBottom = 1000;
     const cw = (W - PAD * 2 - gap * (cols - 1)) / cols;
     const rows = Math.ceil(cards.length / cols);
@@ -687,12 +688,12 @@ window.initPartidos = init;
       roundRect(ctx, cx, cy, 6, ch, 3); ctx.fill();
       // label
       ctx.fillStyle = "#8b949e";
-      ctx.font = "600 20px Inter, sans-serif";
-      ctx.fillText(c.label, cx + 30, cy + 44);
+      ctx.font = "600 18px Inter, sans-serif";
+      ctx.fillText(c.label, cx + 26, cy + 40);
       // valor (limpiar % y paréntesis para render numérico grande)
       ctx.fillStyle = c.color;
-      ctx.font = "700 72px 'Barlow Condensed', Arial Narrow, sans-serif";
-      ctx.fillText(c.value.replace(/\s+/g, " "), cx + 30, cy + ch - 30);
+      ctx.font = "700 60px 'Barlow Condensed', Arial Narrow, sans-serif";
+      ctx.fillText(c.value.replace(/\s+/g, " "), cx + 26, cy + ch - 28);
     });
 
     // footer
