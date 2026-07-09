@@ -629,8 +629,8 @@
         { label: "SUBCAMPEÓN 🥈",          value: txt("t-kpi-sub"),     color: "#cbd5e1" },
         { label: "PODIOS TOTALES",         value: txt("t-kpi-podios"),  color: "#e6edf3" },
         { label: "% PODIOS",               value: txt("t-kpi-eff"),     color: "#4ade80" },
-        { label: "FINALES JUGADAS",        value: txt("t-kpi-finales"), color: "#e6edf3" },
         { label: "SEMIS ALCANZADAS",       value: txt("t-kpi-semis"),   color: "#e6edf3" },
+        { label: "FINALES JUGADAS",        value: txt("t-kpi-finales"), color: "#e6edf3" },
         { label: "INSTANCIA MÁS FRECUENTE", value: txt("t-kpi-inst"),  color: "#fbbf24" },
       ];
 
