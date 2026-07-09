@@ -243,10 +243,12 @@ header.hero {
   overflow: hidden;
 }
 /* tarjeta con tooltip: necesita overflow visible */
-#kpi-card-actual, #kpi-card-prom, #kpi-card-sinjugar { overflow: visible; cursor: default; }
+#kpi-card-actual, #kpi-card-prom, #kpi-card-sinjugar, #kpi-card-rp, #kpi-card-rn { overflow: visible; cursor: default; }
 #kpi-card-actual[data-tip]::after,
 #kpi-card-prom[data-tip]::after,
-#kpi-card-sinjugar[data-tip]::after {
+#kpi-card-sinjugar[data-tip]::after,
+#kpi-card-rp[data-tip]::after,
+#kpi-card-rn[data-tip]::after {
   content: attr(data-tip);
   position: absolute;
   bottom: calc(100% + 8px);
@@ -268,7 +270,9 @@ header.hero {
 }
 #kpi-card-actual:hover[data-tip]::after,
 #kpi-card-prom:hover[data-tip]::after,
-#kpi-card-sinjugar:hover[data-tip]::after {
+#kpi-card-sinjugar:hover[data-tip]::after,
+#kpi-card-rp:hover[data-tip]::after,
+#kpi-card-rn:hover[data-tip]::after {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }

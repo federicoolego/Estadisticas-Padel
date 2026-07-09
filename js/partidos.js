@@ -312,21 +312,35 @@ function stats(list) {
 // Devuelve { max, veces, actual }: mejor racha, cuántas veces se alcanzó ese máximo, y la racha vigente al final.
 function streak(list, target) {
   const seq = [...list].sort((a, b) => a.id - b.id);
-  let max = 0, veces = 0, run = 0, actual = 0;
-  seq.forEach(m => {
+  let max = 0, run = 0, runStart = -1, actual = 0;
+  const runs = []; // { length, fromIdx, toIdx }
+  seq.forEach((m, i) => {
     if (m.resultado === target) {
+      if (run === 0) runStart = i;
       run++;
-      if (run > max) { max = run; veces = 1; }
-      else if (run === max && run > 0) veces++;
+      if (run > max) max = run;
     } else {
+      if (run > 0) runs.push({ length: run, fromIdx: runStart, toIdx: i - 1 });
       run = 0;
     }
   });
+  if (run > 0) runs.push({ length: run, fromIdx: runStart, toIdx: seq.length - 1 });
+
+  const maxRuns = runs.filter(r => r.length === max && max > 0);
+  const veces = maxRuns.length;
+
   // racha actual: contar desde el final mientras coincida
   for (let i = seq.length - 1; i >= 0; i--) {
     if (seq[i].resultado === target) actual++; else break;
   }
-  return { max, veces, actual };
+
+  // Rangos de fechas de las rachas máximas
+  const rangos = maxRuns.map(r => ({
+    fecha1: seq[r.fromIdx] && seq[r.fromIdx].fecha,
+    fecha2: seq[r.toIdx] && seq[r.toIdx].fecha,
+  }));
+
+  return { max, veces, actual, rangos };
 }
 
 function renderRecord(data) {
@@ -398,6 +412,21 @@ function renderKPIs(data) {
   const rn = streak(data, "PP");
   el("kpi-rp").innerHTML = rp.max + (rp.max ? ` <small>(${rp.veces})</small>` : "");
   el("kpi-rn").innerHTML = rn.max + (rn.max ? ` <small>(${rn.veces})</small>` : "");
+
+  const fmtISO = iso => {
+    if (!iso) return "?";
+    const [y, mo, d] = iso.split("-");
+    return `${d}/${mo}/${y}`;
+  };
+  const buildStreakTip = rangos => rangos.map(r =>
+    r.fecha1 === r.fecha2 ? fmtISO(r.fecha1) : `${fmtISO(r.fecha1)} – ${fmtISO(r.fecha2)}`
+  ).join("\n");
+  const rpCard = el("kpi-card-rp");
+  const rnCard = el("kpi-card-rn");
+  if (rp.max && rp.rangos.length) rpCard.setAttribute("data-tip", buildStreakTip(rp.rangos));
+  else rpCard.removeAttribute("data-tip");
+  if (rn.max && rn.rangos.length) rnCard.setAttribute("data-tip", buildStreakTip(rn.rangos));
+  else rnCard.removeAttribute("data-tip");
 
   // Racha actual: una sola métrica. Positiva -> verde, negativa -> rojo.
   const card = el("kpi-card-actual");
