@@ -11,7 +11,7 @@
   const VALID = new Set(["local", "prod"]);
 
   const stored = localStorage.getItem(STORAGE_KEY);
-  const MODE = VALID.has(stored) ? stored : "local"; // ← default: Local
+  const MODE = VALID.has(stored) ? stored : "prod"; // ← default: Producción
 
   // En modo Prod, "partidos" y "torneos" leen de las views aplanadas que
   // devuelven el mismo shape que los JSON originales (con strings resueltos

@@ -16,8 +16,8 @@
   <!-- Barra de controles arriba a la derecha -->
   <div class="topbar">
     <button id="env-toggle" class="env-toggle" aria-label="Cambiar entorno" title="Cambiar entorno">
-      <span class="env-toggle-icon">🖥️</span>
-      <span class="env-toggle-label">Local</span>
+      <span class="env-toggle-icon">☁️</span>
+      <span class="env-toggle-label">Producción</span>
     </button>
     <button id="admin-toggle" class="admin-toggle" aria-label="Modo administrador" title="Modo administrador">
       <span class="admin-toggle-icon">🔒</span>
@@ -91,6 +91,10 @@
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Resultado">
             <div class="combo-panel"><ul class="combo-list"></ul></div>
           </div></div>
+        <div class="field"><label>Últimos N</label>
+          <input type="number" id="last-n" class="last-n-input" min="1" max="100" step="1"
+                 placeholder="Todos" aria-label="Últimos N partidos" inputmode="numeric">
+        </div>
         <button class="reset" id="reset">Limpiar filtros</button>
       </section>
 
@@ -188,6 +192,10 @@
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Puesto">
             <div class="combo-panel"><ul class="combo-list"></ul></div>
           </div></div>
+        <div class="field"><label>Últimos N</label>
+          <input type="number" id="t-last-n" class="last-n-input" min="1" max="100" step="1"
+                 placeholder="Todos" aria-label="Últimos N torneos" inputmode="numeric">
+        </div>
         <button class="reset" id="t-reset">Limpiar filtros</button>
       </section>
 
@@ -249,15 +257,15 @@
   <div id="admin-modal-root"></div>
 
   <!-- 1) Switch de entorno + SDK de Supabase (siempre cargado, liviano) + cliente condicional -->
-  <script src="js/env.js?v=1"></script>
+  <script src="js/env.js?v=2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-client.js?v=1"></script>
 
   <!-- 2) App -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="js/partidos.js?v=1"></script>
-  <script src="js/torneos.js?v=2"></script>
-  <script src="js/admin.js?v=1"></script>
+  <script src="js/partidos.js?v=2"></script>
+  <script src="js/torneos.js?v=3"></script>
+  <script src="js/admin.js?v=2"></script>
   <script>
     // ================= Tabs switcher =================
     (function () {

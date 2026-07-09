@@ -5,7 +5,7 @@ const MESES = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
 let ALL = [];
 let charts = {};
 
-const filters = { companiero: [], rival: [], anio: [], mes: [], cancha: [], formato: [], resultado: [] };
+const filters = { companiero: [], rival: [], anio: [], mes: [], cancha: [], formato: [], resultado: [], lastN: null };
 
 const el = (id) => document.getElementById(id);
 
@@ -152,13 +152,30 @@ function rivalPlayers() {
 }
 
 function bindFilters() {
+  const lastNInput = el("last-n");
+  if (lastNInput) {
+    lastNInput.addEventListener("input", () => {
+      let v = parseInt(lastNInput.value, 10);
+      if (isNaN(v) || v <= 0) {
+        filters.lastN = null;
+      } else {
+        if (v > 100) { v = 100; lastNInput.value = "100"; }
+        filters.lastN = v;
+      }
+      render();
+    });
+  }
   el("reset").addEventListener("click", () => {
-    Object.keys(filters).forEach(k => filters[k] = []);
+    Object.keys(filters).forEach(k => {
+      if (k === "lastN") filters[k] = null;
+      else filters[k] = [];
+    });
     Object.keys(combos).forEach(id => {
       if (combos[id].search) combos[id].search.value = "";
       updateComboInput(id);
       renderComboList(id, "");
     });
+    if (lastNInput) lastNInput.value = "";
     closeAllCombos();
     render();
   });
@@ -166,7 +183,7 @@ function bindFilters() {
 
 function applyFilters() {
   const f = filters;
-  return ALL.filter(m =>
+  let list = ALL.filter(m =>
     (!f.companiero.length || f.companiero.includes(m.companiero)) &&
     (!f.rival.length || splitRivals(m.rivales).some(p => f.rival.includes(p))) &&
     (!f.anio.length || f.anio.includes(String(m.anio))) &&
@@ -175,6 +192,11 @@ function applyFilters() {
     (!f.formato.length || f.formato.includes(m.formato)) &&
     (!f.resultado.length || f.resultado.includes(m.resultado))
   );
+  if (f.lastN && f.lastN > 0) {
+    // Últimos N por id descendente (los más recientes cargados)
+    list = [...list].sort((a, b) => b.id - a.id).slice(0, f.lastN);
+  }
+  return list;
 }
 
 function render() {
@@ -514,10 +536,11 @@ window.initPartidos = init;
   function txt(id) { const e = el(id); return e ? e.textContent.trim() : "–"; }
   const FILTER_LABELS = {
     anio: "Año", mes: "Mes", formato: "Formato",
-    cancha: "Cancha", companiero: "Compañero", rival: "Rival", resultado: "Resultado"
+    cancha: "Cancha", companiero: "Compañero", rival: "Rival", resultado: "Resultado",
+    lastN: "Últimos"
   };
   // orden de aparición de los filtros
-  const FILTER_ORDER = ["anio", "mes", "formato", "cancha", "companiero", "rival", "resultado"];
+  const FILTER_ORDER = ["anio", "mes", "formato", "cancha", "companiero", "rival", "resultado", "lastN"];
 
   function labelForValue(filterKey, val) {
     if (filterKey === "mes") {
@@ -533,6 +556,10 @@ window.initPartidos = init;
   function shownFilters() {
     const out = [];
     FILTER_ORDER.forEach(key => {
+      if (key === "lastN") {
+        if (filters.lastN) out.push(`${FILTER_LABELS.lastN}: ${filters.lastN}`);
+        return;
+      }
       const arr = filters[key] || [];
       if (arr.length) {
         const vals = arr.map(v => labelForValue(key, v)).join(", ");

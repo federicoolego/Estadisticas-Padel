@@ -106,6 +106,21 @@ header.hero {
 }
 .filters select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
+/* Input numérico "Últimos N" */
+.last-n-input {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 13px;
+  font-family: var(--font-body);
+}
+.last-n-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.last-n-input::-webkit-inner-spin-button,
+.last-n-input::-webkit-outer-spin-button { opacity: 1; }
+
 /* Combobox con búsqueda */
 .combo { position: relative; }
 .combo-input {

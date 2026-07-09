@@ -177,6 +177,8 @@
         return;
       }
       closeModal();
+      // Al loguear como admin, chequear inconsistencias entre JSON local y Supabase
+      setTimeout(() => runIntegrityCheck({ silentIfOk: false }), 300);
     });
     modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
   }
@@ -193,7 +195,8 @@
       </ul>
       <div class="admin-actions with-delete">
         <button type="button" class="admin-btn danger" id="admin-logout">Cerrar sesión</button>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="admin-btn ghost" id="admin-check-integrity">🔍 Verificar integridad</button>
           <button type="button" class="admin-btn ghost" id="admin-open-catalogs">⚙️ Catálogos</button>
           <button type="button" class="admin-btn primary" data-close>Listo</button>
         </div>
@@ -205,6 +208,7 @@
       closeModal();
     });
     $("#admin-open-catalogs").addEventListener("click", () => openCatalogsModal());
+    $("#admin-check-integrity").addEventListener("click", () => runIntegrityCheck({ silentIfOk: false }));
   }
 
   // ====================================================================
@@ -399,6 +403,14 @@
   // ====================================================================
   //   Helpers
   // ====================================================================
+  function todayISO() {
+    // Fecha de hoy en la zona local, formato YYYY-MM-DD (compatible con <input type="date">)
+    const d = new Date();
+    const off = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - off * 60000);
+    return local.toISOString().slice(0, 10);
+  }
+
   function deriveFromDate(fechaStr) {
     const [y, mo, d] = fechaStr.split("-").map(Number);
     const dt = new Date(Date.UTC(y, mo - 1, d, 12));
@@ -441,7 +453,7 @@
       <h2 class="admin-title">${isEdit ? "Editar partido #" + r.id : "Nuevo partido"}</h2>
       <form id="admin-partido-form" class="admin-form">
         <label>Fecha
-          <input type="date" name="fecha" required value="${escapeHtml(r.fecha)}">
+          <input type="date" name="fecha" required value="${escapeHtml(r.fecha)}" max="${todayISO()}">
         </label>
         <div class="admin-row-2">
           <label>Cancha ${comboSkeleton("cancha_id", "Buscar cancha…")}</label>
@@ -481,6 +493,10 @@
       const err = $("#admin-partido-err"); err.hidden = true;
       const fd = new FormData(form);
       const fecha = fd.get("fecha");
+      if (fecha > todayISO()) {
+        err.textContent = "La fecha no puede ser posterior a hoy. No se puede cargar un partido que aún no jugaste.";
+        err.hidden = false; return;
+      }
       const resultado = fd.get("resultado");
       const canchaId = combos.cancha.getId();
       const formatoId = combos.formato.getId();
@@ -550,7 +566,7 @@
       <h2 class="admin-title">${isEdit ? "Editar torneo #" + r.id : "Nuevo torneo"}</h2>
       <form id="admin-torneo-form" class="admin-form">
         <label>Fecha
-          <input type="date" name="fecha" required value="${escapeHtml(r.fecha)}">
+          <input type="date" name="fecha" required value="${escapeHtml(r.fecha)}" max="${todayISO()}">
         </label>
         <div class="admin-row-2">
           <label>Organizador ${comboSkeleton("organizador_id", "Buscar organizador…")}</label>
@@ -599,6 +615,10 @@
       const err = $("#admin-torneo-err"); err.hidden = true;
       const fd = new FormData(form);
       const fecha = fd.get("fecha");
+      if (fecha > todayISO()) {
+        err.textContent = "La fecha no puede ser posterior a hoy. No se puede cargar un torneo que aún no jugaste.";
+        err.hidden = false; return;
+      }
       const organizadorId = combos.organizador.getId();
       const categoriaId = combos.categoria.getId();
       const companieroId = combos.companiero.getId();
@@ -666,7 +686,211 @@
   }
 
   // ====================================================================
-  //   BLOQUE 3 · Panel de gestión de catálogos
+  //   BLOQUE 3 · Verificación de integridad Local (JSON) ↔ Prod (Supabase)
+  // ====================================================================
+  // Compara el contenido de data/partidos.json y data/torneos.json contra
+  // las views partidos_view / torneos_view de Supabase, y muestra un modal
+  // con las diferencias detectadas. Se dispara automáticamente al iniciar
+  // sesión como admin, y también desde el menú admin ("Verificar integridad").
+
+  // Campos que se comparan en cada tabla (ignoramos id porque es la clave,
+  // pero SÍ lo usamos para hacer el match entre ambas fuentes).
+  const INTEGRITY_FIELDS = {
+    partidos: ["fecha","mes","anio","dia","cancha","formato","companiero","rivales","resultado"],
+    torneos:  ["fecha","mes","anio","dia","organizador","companiero","categoria","zona","octavos","cuartos","semifinal","final","puesto"]
+  };
+
+  function normalizeValue(v) {
+    // Normaliza para comparar: null/undefined/"" son equivalentes.
+    if (v === undefined || v === null) return null;
+    if (typeof v === "string") return v.trim() === "" ? null : v.trim();
+    return v;
+  }
+
+  function diffRecord(fields, localRec, prodRec) {
+    const diffs = [];
+    for (const f of fields) {
+      const a = normalizeValue(localRec[f]);
+      const b = normalizeValue(prodRec[f]);
+      if (a !== b) diffs.push({ field: f, local: a, prod: b });
+    }
+    return diffs;
+  }
+
+  async function fetchLocalJson(name) {
+    // Le agrego un cache-buster para que no me lea una versión cacheada del JSON.
+    const res = await fetch(`data/${name}.json?ts=${Date.now()}`);
+    if (!res.ok) throw new Error(`No se pudo leer data/${name}.json (HTTP ${res.status}).`);
+    return await res.json();
+  }
+
+  async function fetchProdView(viewName) {
+    const { data, error } = await window.sb.from(viewName).select("*").order("id", { ascending: true });
+    if (error) throw new Error(`No se pudo leer ${viewName}: ${error.message}`);
+    return data || [];
+  }
+
+  async function compareDatasets(name, viewName) {
+    const [localArr, prodArr] = await Promise.all([
+      fetchLocalJson(name),
+      fetchProdView(viewName)
+    ]);
+    const localById = new Map(localArr.map(r => [r.id, r]));
+    const prodById  = new Map(prodArr.map(r => [r.id, r]));
+    const fields = INTEGRITY_FIELDS[name];
+
+    const onlyLocal = [];   // ids que están en el JSON local pero no en Supabase
+    const onlyProd  = [];   // ids que están en Supabase pero no en el JSON local
+    const different = [];   // ids que están en ambos pero con diferencias
+
+    for (const [id, rec] of localById) {
+      if (!prodById.has(id)) onlyLocal.push(rec);
+      else {
+        const d = diffRecord(fields, rec, prodById.get(id));
+        if (d.length) different.push({ id, local: rec, prod: prodById.get(id), diffs: d });
+      }
+    }
+    for (const [id, rec] of prodById) {
+      if (!localById.has(id)) onlyProd.push(rec);
+    }
+    return {
+      localCount: localArr.length,
+      prodCount: prodArr.length,
+      onlyLocal, onlyProd, different
+    };
+  }
+
+  async function runIntegrityCheck(opts = {}) {
+    const { silentIfOk = false } = opts;
+    openModal(`
+      <h2 class="admin-title">🔍 Verificando integridad de datos…</h2>
+      <p class="admin-sub">Comparando <code>data/partidos.json</code> y <code>data/torneos.json</code> contra Supabase.</p>
+    `);
+    let partidos, torneos, fatalError = null;
+    try {
+      [partidos, torneos] = await Promise.all([
+        compareDatasets("partidos", "partidos_view"),
+        compareDatasets("torneos",  "torneos_view")
+      ]);
+    } catch (e) {
+      fatalError = e.message || String(e);
+    }
+    if (fatalError) {
+      openModal(`
+        <h2 class="admin-title">⚠️ Error al verificar integridad</h2>
+        <p class="admin-err">${escapeHtml(fatalError)}</p>
+        <div class="admin-actions">
+          <button type="button" class="admin-btn primary" data-close>Cerrar</button>
+        </div>
+      `);
+      modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
+      return;
+    }
+
+    const totalIssues =
+      partidos.onlyLocal.length + partidos.onlyProd.length + partidos.different.length +
+      torneos.onlyLocal.length  + torneos.onlyProd.length  + torneos.different.length;
+
+    if (totalIssues === 0 && silentIfOk) { closeModal(); return; }
+
+    openModal(renderIntegrityReport(partidos, torneos, totalIssues), { wide: true });
+    modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
+  }
+
+  function renderIntegrityReport(partidos, torneos, totalIssues) {
+    const okBanner = `
+      <div class="integrity-banner ok">
+        <strong>✅ Todo alineado.</strong>
+        Los archivos locales coinciden exactamente con Supabase.
+      </div>`;
+    const issuesBanner = `
+      <div class="integrity-banner warn">
+        <strong>⚠️ Se detectaron ${totalIssues} diferencia${totalIssues === 1 ? "" : "s"}.</strong>
+        Revisá el detalle de cada tabla más abajo para alinear <code>partidos.json</code> /
+        <code>torneos.json</code> con la base de Supabase.
+      </div>`;
+
+    return `
+      <h2 class="admin-title">🔍 Integridad Local ↔ Producción</h2>
+      <p class="admin-sub">
+        Local: <code>data/*.json</code> · Producción: Supabase (<code>partidos_view</code> / <code>torneos_view</code>).
+      </p>
+      ${totalIssues === 0 ? okBanner : issuesBanner}
+      ${renderIntegritySection("Partidos", "partido", partidos, INTEGRITY_FIELDS.partidos)}
+      ${renderIntegritySection("Torneos",  "torneo",  torneos,  INTEGRITY_FIELDS.torneos)}
+      <div class="admin-actions">
+        <button type="button" class="admin-btn primary" data-close>Cerrar</button>
+      </div>
+    `;
+  }
+
+  function renderIntegritySection(title, singular, cmp, fields) {
+    const hasIssues = cmp.onlyLocal.length || cmp.onlyProd.length || cmp.different.length;
+    return `
+      <section class="integrity-section">
+        <h3 class="integrity-title">
+          ${escapeHtml(title)}
+          <span class="integrity-counts">
+            Local: <strong>${cmp.localCount}</strong> ·
+            Prod: <strong>${cmp.prodCount}</strong>
+            ${hasIssues ? `· <span class="integrity-badge">${cmp.onlyLocal.length + cmp.onlyProd.length + cmp.different.length} diferencia${(cmp.onlyLocal.length + cmp.onlyProd.length + cmp.different.length) === 1 ? "" : "s"}</span>` : `· <span class="integrity-badge ok">OK</span>`}
+          </span>
+        </h3>
+        ${cmp.onlyLocal.length ? `
+          <details class="integrity-details" open>
+            <summary>📄 Solo en Local (${cmp.onlyLocal.length}) — falta cargar${cmp.onlyLocal.length === 1 ? "" : "n"} en Supabase</summary>
+            <ul class="integrity-list">
+              ${cmp.onlyLocal.map(r => `<li><strong>#${r.id}</strong> · ${escapeHtml(r.fecha || "")} · ${escapeHtml(summaryLine(singular, r))}</li>`).join("")}
+            </ul>
+          </details>` : ""}
+        ${cmp.onlyProd.length ? `
+          <details class="integrity-details" open>
+            <summary>☁️ Solo en Producción (${cmp.onlyProd.length}) — falta${cmp.onlyProd.length === 1 ? "" : "n"} en el JSON local</summary>
+            <ul class="integrity-list">
+              ${cmp.onlyProd.map(r => `<li><strong>#${r.id}</strong> · ${escapeHtml(r.fecha || "")} · ${escapeHtml(summaryLine(singular, r))}</li>`).join("")}
+            </ul>
+          </details>` : ""}
+        ${cmp.different.length ? `
+          <details class="integrity-details" open>
+            <summary>✏️ Con diferencias (${cmp.different.length})</summary>
+            <ul class="integrity-list">
+              ${cmp.different.map(d => `
+                <li>
+                  <strong>#${d.id}</strong> · ${escapeHtml(d.local.fecha || d.prod.fecha || "")}
+                  <ul class="integrity-diffs">
+                    ${d.diffs.map(x => `
+                      <li>
+                        <span class="integrity-field">${escapeHtml(x.field)}</span>:
+                        <span class="integrity-local">Local = ${escapeHtml(formatVal(x.local))}</span>
+                        <span class="integrity-arrow">→</span>
+                        <span class="integrity-prod">Prod = ${escapeHtml(formatVal(x.prod))}</span>
+                      </li>`).join("")}
+                  </ul>
+                </li>`).join("")}
+            </ul>
+          </details>` : ""}
+        ${!hasIssues ? `<p class="integrity-ok-msg">✅ Sin diferencias en ${escapeHtml(title.toLowerCase())}.</p>` : ""}
+      </section>
+    `;
+  }
+
+  function summaryLine(singular, r) {
+    if (singular === "partido") {
+      return `${r.companiero || "?"} vs ${r.rivales || "?"} · ${r.resultado || "?"}`;
+    }
+    // torneo
+    return `${r.organizador || "?"} · ${r.categoria || "?"} · ${r.puesto || "sin podio"}`;
+  }
+
+  function formatVal(v) {
+    if (v === null) return "—";
+    if (v === true) return "true";
+    if (v === false) return "false";
+    return String(v);
+  }
+
+  // ====================================================================
+  //   BLOQUE 4 · Panel de gestión de catálogos
   // ====================================================================
   // El estado del modal se guarda en un objeto viajero. Al hacer rename de un
   // item con uso > 0 marcamos dirty=true; al cerrar el modal reload completo

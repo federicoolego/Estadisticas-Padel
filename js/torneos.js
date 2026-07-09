@@ -23,7 +23,7 @@
   let charts = {};
   let initialized = false;
 
-  const filters = { companiero: [], organizador: [], categoria: [], anio: [], mes: [], puesto: [] };
+  const filters = { companiero: [], organizador: [], categoria: [], anio: [], mes: [], puesto: [], lastN: null };
   const combos = {};
 
   const el = (id) => document.getElementById(id);
@@ -169,13 +169,30 @@
   });
 
   function bindFilters() {
+    const lastNInput = el("t-last-n");
+    if (lastNInput) {
+      lastNInput.addEventListener("input", () => {
+        let v = parseInt(lastNInput.value, 10);
+        if (isNaN(v) || v <= 0) {
+          filters.lastN = null;
+        } else {
+          if (v > 100) { v = 100; lastNInput.value = "100"; }
+          filters.lastN = v;
+        }
+        render();
+      });
+    }
     el("t-reset").addEventListener("click", () => {
-      Object.keys(filters).forEach(k => filters[k] = []);
+      Object.keys(filters).forEach(k => {
+        if (k === "lastN") filters[k] = null;
+        else filters[k] = [];
+      });
       Object.keys(combos).forEach(id => {
         if (combos[id].search) combos[id].search.value = "";
         updateComboInput(id);
         renderComboList(id, "");
       });
+      if (lastNInput) lastNInput.value = "";
       closeAllCombos();
       render();
     });
@@ -189,7 +206,7 @@
 
   function applyFilters() {
     const f = filters;
-    return ALL.filter(t =>
+    let list = ALL.filter(t =>
       (!f.companiero.length || f.companiero.includes(t.companiero)) &&
       (!f.organizador.length || f.organizador.includes(t.organizador)) &&
       (!f.categoria.length || f.categoria.includes(t.categoria)) &&
@@ -197,6 +214,10 @@
       (!f.mes.length || f.mes.includes(String(t.mes))) &&
       matchPuesto(t, f.puesto)
     );
+    if (f.lastN && f.lastN > 0) {
+      list = [...list].sort((a, b) => b.id - a.id).slice(0, f.lastN);
+    }
+    return list;
   }
 
   // Instancia máxima alcanzada: la última etapa con valor no null.
@@ -521,9 +542,10 @@
   (function () {
     const FILTER_LABELS_T = {
       anio: "Año", mes: "Mes", organizador: "Organizador",
-      categoria: "Categoría", companiero: "Compañero", puesto: "Puesto"
+      categoria: "Categoría", companiero: "Compañero", puesto: "Puesto",
+      lastN: "Últimos"
     };
-    const FILTER_ORDER_T = ["anio", "mes", "organizador", "categoria", "companiero", "puesto"];
+    const FILTER_ORDER_T = ["anio", "mes", "organizador", "categoria", "companiero", "puesto", "lastN"];
     const PUESTO_SHORT = { campeon: "Campeón", subcampeon: "Subcampeón", tercero: "Tercero", sin_podio: "Sin podio" };
 
     function txt(id) { const e = document.getElementById(id); return e ? e.textContent.trim() : "–"; }
@@ -531,6 +553,10 @@
     function shownFiltersTorneos() {
       const out = [];
       FILTER_ORDER_T.forEach(key => {
+        if (key === "lastN") {
+          if (filters.lastN) out.push(`${FILTER_LABELS_T.lastN}: ${filters.lastN}`);
+          return;
+        }
         const arr = filters[key] || [];
         if (arr.length) {
           const vals = arr.map(v => {
