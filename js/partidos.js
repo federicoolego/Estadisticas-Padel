@@ -237,8 +237,9 @@ function stats(list) {
   const dif = pg - pp;
   const eff = pj ? pg / pj : 0;
 
-  // Rango de fechas y promedio de partidos por día
+  // Rango de fechas, promedio y máxima racha de días sin jugar
   let fechaMin = null, fechaMax = null, dias = 0, prom = 0;
+  let maxSinJugar = 0, vecesMax = 0;
   if (pj > 0) {
     const times = list
       .map(m => {
@@ -253,11 +254,41 @@ function stats(list) {
       fechaMin = new Date(tMin);
       fechaMax = new Date(tMax);
       dias = Math.round((tMax - tMin) / 86400000);
-      // Si todos los partidos son el mismo día, evitar división por cero
       prom = pj / Math.max(dias, 1);
+
+      // Gaps entre días consecutivos con partido
+      const uniqDays = [...new Set(times.map(t => Math.round(t / 86400000)))].sort((a, b) => a - b);
+      const gaps = [];
+      for (let i = 1; i < uniqDays.length; i++) {
+        const gap = uniqDays[i] - uniqDays[i - 1] - 1;
+        if (gap > 0) gaps.push(gap);
+      }
+
+      // Si el último partido del filtro coincide con el último partido real del dataset,
+      // extender el tramo abierto desde ese partido hasta hoy.
+      const allTimes = ALL
+        .map(m => {
+          if (!m.fecha) return null;
+          const [y, mo, d] = m.fecha.split("-").map(Number);
+          return new Date(y, mo - 1, d).getTime();
+        })
+        .filter(t => t !== null && !isNaN(t));
+      const tMaxAll = allTimes.length ? Math.max(...allTimes) : tMax;
+      if (tMax === tMaxAll) {
+        const hoy = new Date();
+        const hoyDay = Math.round(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime() / 86400000);
+        const lastDay = uniqDays[uniqDays.length - 1];
+        const gapAbierto = hoyDay - lastDay;
+        if (gapAbierto > 0) gaps.push(gapAbierto);
+      }
+
+      if (gaps.length) {
+        maxSinJugar = Math.max(...gaps);
+        vecesMax = gaps.filter(g => g === maxSinJugar).length;
+      }
     }
   }
-  return { pj, pg, pp, dif, eff, fechaMin, fechaMax, dias, prom };
+  return { pj, pg, pp, dif, eff, fechaMin, fechaMax, dias, prom, maxSinJugar, vecesMax };
 }
 
 // Rachas sobre la lista filtrada, ordenada cronológicamente por # (id).
@@ -318,6 +349,20 @@ function renderKPIs(data) {
       promSub.textContent = `${s.dias} ${s.dias === 1 ? "día" : "días"}`;
       promCard.setAttribute("data-tip", `${fmt(s.fechaMin)} – ${fmt(s.fechaMax)}`);
     }
+  }
+
+  // Días sin jugar dentro del rango filtrado
+  const sinEl = el("kpi-sinjugar");
+  const sinCard = el("kpi-card-sinjugar");
+  if (s.pj === 0 || !s.fechaMin) {
+    sinEl.textContent = "–";
+    sinCard.removeAttribute("data-tip");
+  } else {
+    sinEl.innerHTML = s.maxSinJugar + (s.maxSinJugar ? ` <small>(${s.vecesMax})</small>` : "");
+    const fmtDate = d => String(d.getDate()).padStart(2, "0") + "/" +
+                        String(d.getMonth() + 1).padStart(2, "0") + "/" +
+                        d.getFullYear();
+    sinCard.setAttribute("data-tip", `${fmtDate(s.fechaMin)} – ${fmtDate(s.fechaMax)}`);
   }
 
   const rp = streak(data, "PG");
@@ -657,7 +702,7 @@ window.initPartidos = init;
     }
     ctx.fillText("Filtros · " + filterLine, PAD, 248);
 
-    // datos KPI (3 columnas x 3 filas)
+    // datos KPI (4 columnas x 3 filas, 10 items)
     const eff = txt("kpi-eff");
     const cards = [
       { label: "PARTIDOS JUGADOS", value: txt("kpi-pj"), color: "#e6edf3" },
@@ -665,14 +710,15 @@ window.initPartidos = init;
       { label: "PERDIDOS", value: txt("kpi-pp"), color: "#f87171" },
       { label: "DIFERENCIA", value: txt("kpi-dif"), color: "#e6edf3" },
       { label: "PROMEDIO DE DÍAS POR PARTIDO", value: txt("kpi-prom"), color: "#e6edf3" },
+      { label: "DÍAS SIN JUGAR", value: txt("kpi-sinjugar"), color: "#e6edf3" },
       { label: "EFECTIVIDAD", value: eff, color: "#4ade80" },
       { label: "MEJOR RACHA", value: txt("kpi-rp"), color: "#4ade80" },
       { label: "PEOR RACHA", value: txt("kpi-rn"), color: "#f87171" },
       { label: "RACHA ACTUAL", value: txt("kpi-ra"), color: el("kpi-card-actual").classList.contains("loss") ? "#f87171" : "#4ade80" },
     ];
 
-    // grilla 3 columnas x 3 filas
-    const cols = 3, gap = 22;
+    // grilla 4 columnas x 3 filas (últimos 2 slots vacíos)
+    const cols = 4, gap = 18;
     const gridTop = 300, gridBottom = 1000;
     const cw = (W - PAD * 2 - gap * (cols - 1)) / cols;
     const rows = Math.ceil(cards.length / cols);
@@ -690,12 +736,12 @@ window.initPartidos = init;
       roundRect(ctx, cx, cy, 6, ch, 3); ctx.fill();
       // label
       ctx.fillStyle = "#8b949e";
-      ctx.font = "600 18px Inter, sans-serif";
-      ctx.fillText(c.label, cx + 26, cy + 40);
+      ctx.font = "600 15px Inter, sans-serif";
+      ctx.fillText(c.label, cx + 22, cy + 34);
       // valor (limpiar % y paréntesis para render numérico grande)
       ctx.fillStyle = c.color;
-      ctx.font = "700 60px 'Barlow Condensed', Arial Narrow, sans-serif";
-      ctx.fillText(c.value.replace(/\s+/g, " "), cx + 26, cy + ch - 28);
+      ctx.font = "700 52px 'Barlow Condensed', Arial Narrow, sans-serif";
+      ctx.fillText(c.value.replace(/\s+/g, " "), cx + 22, cy + ch - 24);
     });
 
     // footer
