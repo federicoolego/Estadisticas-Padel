@@ -240,6 +240,7 @@ function stats(list) {
   // Rango de fechas, promedio y máxima racha de días sin jugar
   let fechaMin = null, fechaMax = null, dias = 0, prom = 0;
   let maxSinJugar = 0, vecesMax = 0, gapsMax = [], diasRangoSinJugar = 0;
+  let diasSinJugarActual = 0;
   if (pj > 0) {
     const times = list
       .map(m => {
@@ -302,9 +303,15 @@ function stats(list) {
         gapsMax = gaps.filter(g => g.length === maxSinJugar);
         vecesMax = gapsMax.length;
       }
+
+      // Días sin jugar ACTUAL: hoy - último partido del filtro (nunca negativo)
+      const hoyActual = new Date();
+      const hoyDayActual = Math.round(new Date(hoyActual.getFullYear(), hoyActual.getMonth(), hoyActual.getDate()).getTime() / 86400000);
+      const lastDayActual = Math.round(tMax / 86400000);
+      diasSinJugarActual = Math.max(0, hoyDayActual - lastDayActual);
     }
   }
-  return { pj, pg, pp, dif, eff, fechaMin, fechaMax, dias, prom, maxSinJugar, vecesMax, gapsMax, diasRangoSinJugar };
+  return { pj, pg, pp, dif, eff, fechaMin, fechaMax, dias, prom, maxSinJugar, vecesMax, gapsMax, diasRangoSinJugar, diasSinJugarActual };
 }
 
 // Rachas sobre la lista filtrada, ordenada cronológicamente por # (id).
@@ -406,6 +413,25 @@ function renderKPIs(data) {
     } else {
       sinCard.removeAttribute("data-tip");
     }
+  }
+
+  // Días sin jugar ACTUAL: desde el último partido del filtro hasta hoy
+  const sinActEl = el("kpi-sinjugar-actual");
+  const sinActSub = el("kpi-sinjugar-actual-sub");
+  const sinActCard = el("kpi-card-sinjugar-actual");
+  if (s.pj === 0 || !s.fechaMax) {
+    sinActEl.textContent = "–";
+    sinActSub.textContent = "";
+    sinActCard.removeAttribute("data-tip");
+  } else {
+    sinActEl.textContent = s.diasSinJugarActual;
+    sinActSub.textContent = s.diasSinJugarActual === 1 ? "día" : "días";
+    const fmtISOdate = d => {
+      return String(d.getDate()).padStart(2, "0") + "/" +
+             String(d.getMonth() + 1).padStart(2, "0") + "/" +
+             d.getFullYear();
+    };
+    sinActCard.setAttribute("data-tip", `${fmtISOdate(s.fechaMax)} – HOY`);
   }
 
   const rp = streak(data, "PG");
@@ -769,6 +795,7 @@ window.initPartidos = init;
       { label: "DIFERENCIA", value: txt("kpi-dif"), color: "#e6edf3" },
       { label: "PROMEDIO PARTIDOS", value: txt("kpi-prom"), color: "#e6edf3" },
       { label: "DÍAS SIN JUGAR", value: txt("kpi-sinjugar"), color: "#e6edf3" },
+      { label: "DÍAS SIN JUGAR ACTUAL", value: txt("kpi-sinjugar-actual"), color: "#e6edf3" },
       { label: "EFECTIVIDAD", value: eff, color: "#4ade80" },
       { label: "MEJOR RACHA", value: txt("kpi-rp"), color: "#4ade80" },
       { label: "PEOR RACHA", value: txt("kpi-rn"), color: "#f87171" },
