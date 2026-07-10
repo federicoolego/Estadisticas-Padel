@@ -337,8 +337,9 @@ function streak(list, target) {
   const veces = maxRuns.length;
 
   // racha actual: contar desde el final mientras coincida
+  let actualStart = -1;
   for (let i = seq.length - 1; i >= 0; i--) {
-    if (seq[i].resultado === target) actual++; else break;
+    if (seq[i].resultado === target) { actual++; actualStart = i; } else break;
   }
 
   // Rangos de fechas de las rachas máximas
@@ -347,7 +348,12 @@ function streak(list, target) {
     fecha2: seq[r.toIdx] && seq[r.toIdx].fecha,
   }));
 
-  return { max, veces, actual, rangos };
+  // Rango de fechas de la racha actual (vigente al final)
+  const rangoActual = actual > 0
+    ? { fecha1: seq[actualStart] && seq[actualStart].fecha, fecha2: seq[seq.length - 1] && seq[seq.length - 1].fecha }
+    : null;
+
+  return { max, veces, actual, rangos, rangoActual };
 }
 
 function renderRecord(data) {
@@ -431,7 +437,13 @@ function renderKPIs(data) {
              String(d.getMonth() + 1).padStart(2, "0") + "/" +
              d.getFullYear();
     };
-    sinActCard.setAttribute("data-tip", `${fmtISOdate(s.fechaMax)} – HOY`);
+    if (s.diasSinJugarActual > 0) {
+      // El período "sin jugar" arranca el día siguiente al último partido
+      const desde = new Date(s.fechaMax.getFullYear(), s.fechaMax.getMonth(), s.fechaMax.getDate() + 1);
+      sinActCard.setAttribute("data-tip", `${fmtISOdate(desde)} – HOY`);
+    } else {
+      sinActCard.setAttribute("data-tip", `HOY (${fmtISOdate(s.fechaMax)})`);
+    }
   }
 
   const rp = streak(data, "PG");
@@ -444,31 +456,68 @@ function renderKPIs(data) {
     const [y, mo, d] = iso.split("-");
     return `${d}/${mo}/${y}`;
   };
+  const diasEntre = (iso1, iso2) => {
+    if (!iso1 || !iso2) return 0;
+    const [y1, m1, d1] = iso1.split("-").map(Number);
+    const [y2, m2, d2] = iso2.split("-").map(Number);
+    const t1 = new Date(y1, m1 - 1, d1).getTime();
+    const t2 = new Date(y2, m2 - 1, d2).getTime();
+    return Math.abs(Math.round((t2 - t1) / 86400000));
+  };
   const buildStreakTip = rangos => rangos.map(r =>
     r.fecha1 === r.fecha2 ? fmtISO(r.fecha1) : `${fmtISO(r.fecha1)} – ${fmtISO(r.fecha2)}`
   ).join("\n");
+  const maxDiasRango = rangos => rangos.reduce((mx, r) => Math.max(mx, diasEntre(r.fecha1, r.fecha2)), 0);
+  const setStreakSub = (subEl, rangos) => {
+    if (!rangos || !rangos.length) { subEl.textContent = ""; return; }
+    const d = maxDiasRango(rangos);
+    subEl.textContent = `${d} ${d === 1 ? "día" : "días"}`;
+  };
+
   const rpCard = el("kpi-card-rp");
   const rnCard = el("kpi-card-rn");
-  if (rp.max && rp.rangos.length) rpCard.setAttribute("data-tip", buildStreakTip(rp.rangos));
-  else rpCard.removeAttribute("data-tip");
-  if (rn.max && rn.rangos.length) rnCard.setAttribute("data-tip", buildStreakTip(rn.rangos));
-  else rnCard.removeAttribute("data-tip");
+  const rpSub = el("kpi-rp-sub");
+  const rnSub = el("kpi-rn-sub");
+  if (rp.max && rp.rangos.length) {
+    rpCard.setAttribute("data-tip", buildStreakTip(rp.rangos));
+    setStreakSub(rpSub, rp.rangos);
+  } else {
+    rpCard.removeAttribute("data-tip");
+    rpSub.textContent = "";
+  }
+  if (rn.max && rn.rangos.length) {
+    rnCard.setAttribute("data-tip", buildStreakTip(rn.rangos));
+    setStreakSub(rnSub, rn.rangos);
+  } else {
+    rnCard.removeAttribute("data-tip");
+    rnSub.textContent = "";
+  }
 
   // Racha actual: una sola métrica. Positiva -> verde, negativa -> rojo.
   const card = el("kpi-card-actual");
+  const raSub = el("kpi-ra-sub");
   card.classList.remove("win", "loss");
-  let valor, tip;
+  let valor, tip, rangoAct = null;
   if (rp.actual > 0) {
     valor = rp.actual;
-    tip = `${rp.actual} ${rp.actual === 1 ? "partido" : "partidos"} sin perder`;
+    rangoAct = rp.rangoActual;
     card.classList.add("win");
   } else if (rn.actual > 0) {
     valor = rn.actual;
-    tip = `${rn.actual} ${rn.actual === 1 ? "partido" : "partidos"} sin ganar`;
+    rangoAct = rn.rangoActual;
     card.classList.add("loss");
   } else {
     valor = 0;
+  }
+  if (rangoAct) {
+    tip = rangoAct.fecha1 === rangoAct.fecha2
+      ? fmtISO(rangoAct.fecha1)
+      : `${fmtISO(rangoAct.fecha1)} – ${fmtISO(rangoAct.fecha2)}`;
+    const d = diasEntre(rangoAct.fecha1, rangoAct.fecha2);
+    raSub.textContent = `${d} ${d === 1 ? "día" : "días"}`;
+  } else {
     tip = "Sin partidos en el filtro actual";
+    raSub.textContent = "";
   }
   el("kpi-ra").textContent = valor;
   card.setAttribute("data-tip", tip);
