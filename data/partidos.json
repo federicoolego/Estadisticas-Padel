@@ -2482,5 +2482,29 @@
     "rivales": "Gonzalo Mendoza - Lucho Vitali",
     "resultado": "PG",
     "dia": "Martes"
+  },
+  {
+    "id": 208,
+    "fecha": "2026-07-16",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Luis Lamberti - Sebastian Lamberti",
+    "resultado": "PP",
+    "dia": "Jueves"
+  },
+  {
+    "id": 209,
+    "fecha": "2026-07-16",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "Luis Lamberti",
+    "rivales": "German Villalba - Sebastian Lamberti",
+    "resultado": "PG",
+    "dia": "Jueves"
   }
 ]
