@@ -2506,5 +2506,29 @@
     "rivales": "German Villalba - Sebastian Lamberti",
     "resultado": "PG",
     "dia": "Jueves"
+  },
+  {
+    "id": 210,
+    "fecha": "2026-07-18",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Cesar Melotta - Franco Olego",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 211,
+    "fecha": "2026-07-21",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Alejandro Barberis - Ivan Barberis",
+    "resultado": "PP",
+    "dia": "Martes"
   }
 ]
