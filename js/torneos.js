@@ -255,10 +255,12 @@
   }
 
   function renderRecord(data) {
-    const s = stats(data);
-    el("t-record").innerHTML =
-      `<span class="w">${s.campeon}</span><span class="sep">·</span><span class="l">${s.tj - s.podios}</span>`;
-  }
+  const s = stats(data);
+  el("t-record").innerHTML =
+    `<span class="w">${s.campeon}</span><span class="sep">/</span><span class="l">${s.tj - s.podios}</span>`;
+  const totalEl = el("t-record-total");
+  if (totalEl) totalEl.textContent = s.tj;
+}
 
   function renderKPIs(data) {
     const s = stats(data);

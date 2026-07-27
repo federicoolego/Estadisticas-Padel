@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pádel · Estadísticas</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/admin.css">
 </head>
+
 <body>
 
   <!-- Barra de controles arriba a la derecha -->
@@ -44,6 +49,8 @@
           <button class="admin-only admin-new-btn" data-new="partido">➕ Nuevo partido</button>
         </div>
         <div class="record-badge">
+          <div class="total" id="record-total"></div>
+          <div class="total-lbl">Partidos jugados</div>
           <div class="big" id="record"></div>
           <div class="lbl">Ganados / Perdidos</div>
         </div>
@@ -53,23 +60,35 @@
         <div class="field"><label>Año</label>
           <div class="combo" id="combo-anio">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Año">
-            <div class="combo-panel"><ul class="combo-list"></ul></div>
-          </div></div>
+            <div class="combo-panel">
+              <ul class="combo-list"></ul>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Mes</label>
           <div class="combo" id="combo-mes">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Mes">
-            <div class="combo-panel"><ul class="combo-list"></ul></div>
-          </div></div>
+            <div class="combo-panel">
+              <ul class="combo-list"></ul>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Formato</label>
           <div class="combo" id="combo-formato">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Formato">
-            <div class="combo-panel"><ul class="combo-list"></ul></div>
-          </div></div>
+            <div class="combo-panel">
+              <ul class="combo-list"></ul>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Cancha</label>
           <div class="combo" id="combo-cancha">
             <input type="text" class="combo-input" readonly placeholder="Todas" aria-label="Cancha">
-            <div class="combo-panel"><ul class="combo-list"></ul></div>
-          </div></div>
+            <div class="combo-panel">
+              <ul class="combo-list"></ul>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Compañero</label>
           <div class="combo" id="combo-companiero" data-search="1">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Compañero">
@@ -77,7 +96,8 @@
               <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
               <ul class="combo-list"></ul>
             </div>
-          </div></div>
+          </div>
+        </div>
         <div class="field"><label>Rival</label>
           <div class="combo" id="combo-rival" data-search="1">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Rival">
@@ -85,50 +105,105 @@
               <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
               <ul class="combo-list"></ul>
             </div>
-          </div></div>
+          </div>
+        </div>
         <div class="field"><label>Resultado</label>
           <div class="combo" id="combo-resultado">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Resultado">
-            <div class="combo-panel"><ul class="combo-list"></ul></div>
-          </div></div>
+            <div class="combo-panel">
+              <ul class="combo-list"></ul>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Últimos N</label>
-          <input type="number" id="last-n" class="last-n-input" min="1" max="100" step="1"
-                 placeholder="Todos" aria-label="Últimos N partidos" inputmode="numeric">
+          <input type="number" id="last-n" class="last-n-input" min="1" max="100" step="1" placeholder="Todos"
+            aria-label="Últimos N partidos" inputmode="numeric">
         </div>
         <button class="reset" id="reset">Limpiar filtros</button>
       </section>
 
       <section class="kpis kpis-main">
-        <div class="kpi"><div class="label">Partidos jugados</div><div class="value" id="kpi-pj">–</div></div>
-        <div class="kpi win"><div class="label">Ganados</div><div class="value" id="kpi-pg">–</div></div>
-        <div class="kpi loss"><div class="label">Perdidos</div><div class="value" id="kpi-pp">–</div></div>
-        <div class="kpi"><div class="label">Diferencia</div><div class="value" id="kpi-dif">–</div></div>
-        <div class="kpi win"><div class="label">Efectividad</div><div class="value" id="kpi-eff">–</div></div>
+        <div class="kpi">
+          <div class="label">Partidos jugados</div>
+          <div class="value" id="kpi-pj">–</div>
+        </div>
+        <div class="kpi win">
+          <div class="label">Ganados</div>
+          <div class="value" id="kpi-pg">–</div>
+        </div>
+        <div class="kpi loss">
+          <div class="label">Perdidos</div>
+          <div class="value" id="kpi-pp">–</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Diferencia</div>
+          <div class="value" id="kpi-dif">–</div>
+        </div>
+        <div class="kpi win">
+          <div class="label">Efectividad</div>
+          <div class="value" id="kpi-eff">–</div>
+        </div>
       </section>
       <section class="kpis kpis-streak">
-        <div class="kpi" id="kpi-card-prom"><div class="label">Promedio partidos</div><div class="value" id="kpi-prom">–</div><div class="sub" id="kpi-prom-sub"></div></div>
-        <div class="kpi" id="kpi-card-sinjugar"><div class="label">Días sin jugar</div><div class="value" id="kpi-sinjugar">–</div><div class="sub" id="kpi-sinjugar-sub"></div></div>
-        <div class="kpi" id="kpi-card-sinjugar-actual"><div class="label">Días sin jugar actual</div><div class="value" id="kpi-sinjugar-actual">–</div><div class="sub" id="kpi-sinjugar-actual-sub"></div></div>
+        <div class="kpi" id="kpi-card-prom">
+          <div class="label">Promedio partidos</div>
+          <div class="value" id="kpi-prom">–</div>
+          <div class="sub" id="kpi-prom-sub"></div>
+        </div>
+        <div class="kpi" id="kpi-card-sinjugar">
+          <div class="label">Días sin jugar</div>
+          <div class="value" id="kpi-sinjugar">–</div>
+          <div class="sub" id="kpi-sinjugar-sub"></div>
+        </div>
+        <div class="kpi" id="kpi-card-sinjugar-actual">
+          <div class="label">Días sin jugar actual</div>
+          <div class="value" id="kpi-sinjugar-actual">–</div>
+          <div class="sub" id="kpi-sinjugar-actual-sub"></div>
+        </div>
       </section>
       <section class="kpis kpis-streak">
-        <div class="kpi win" id="kpi-card-rp"><div class="label">Mejor racha</div><div class="value" id="kpi-rp">–</div><div class="sub" id="kpi-rp-sub"></div></div>
-        <div class="kpi loss" id="kpi-card-rn"><div class="label">Peor racha</div><div class="value" id="kpi-rn">–</div><div class="sub" id="kpi-rn-sub"></div></div>
-        <div class="kpi" id="kpi-card-actual"><div class="label">Racha actual</div><div class="value" id="kpi-ra">–</div><div class="sub" id="kpi-ra-sub"></div></div>
+        <div class="kpi win" id="kpi-card-rp">
+          <div class="label">Mejor racha</div>
+          <div class="value" id="kpi-rp">–</div>
+          <div class="sub" id="kpi-rp-sub"></div>
+        </div>
+        <div class="kpi loss" id="kpi-card-rn">
+          <div class="label">Peor racha</div>
+          <div class="value" id="kpi-rn">–</div>
+          <div class="sub" id="kpi-rn-sub"></div>
+        </div>
+        <div class="kpi" id="kpi-card-actual">
+          <div class="label">Racha actual</div>
+          <div class="value" id="kpi-ra">–</div>
+          <div class="sub" id="kpi-ra-sub"></div>
+        </div>
       </section>
 
       <section class="grid">
-        <div class="card"><h3>Año · partidos y efectividad</h3>
-          <div class="chart-box"><canvas id="chart-anio"></canvas></div></div>
-        <div class="card"><h3>Mes · partidos y efectividad</h3>
-          <div class="chart-box"><canvas id="chart-mes"></canvas></div></div>
-        <div class="card"><h3>Formato · partidos y efectividad</h3>
-          <div class="chart-box"><canvas id="chart-formato"></canvas></div></div>
-        <div class="card"><h3>Cancha · partidos y efectividad</h3>
-          <div class="chart-box"><canvas id="chart-cancha"></canvas></div></div>
-        <div class="card"><h3>Top 5 compañeros · más partidos jugados</h3>
-          <div class="chart-box tall"><canvas id="chart-comp"></canvas></div></div>
-        <div class="card"><h3>Top 5 rivales · más partidos jugados</h3>
-          <div class="chart-box tall"><canvas id="chart-rival"></canvas></div></div>
+        <div class="card">
+          <h3>Año · partidos y efectividad</h3>
+          <div class="chart-box"><canvas id="chart-anio"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Mes · partidos y efectividad</h3>
+          <div class="chart-box"><canvas id="chart-mes"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Formato · partidos y efectividad</h3>
+          <div class="chart-box"><canvas id="chart-formato"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Cancha · partidos y efectividad</h3>
+          <div class="chart-box"><canvas id="chart-cancha"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Top 5 compañeros · más partidos jugados</h3>
+          <div class="chart-box tall"><canvas id="chart-comp"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Top 5 rivales · más partidos jugados</h3>
+          <div class="chart-box tall"><canvas id="chart-rival"></canvas></div>
+        </div>
       </section>
 
       <section class="card full table-card">
@@ -137,8 +212,13 @@
           <table class="tabla">
             <thead>
               <tr>
-                <th>#</th><th>Fecha</th><th>Formato</th><th>Compañero</th>
-                <th>VS</th><th>Rivales</th><th>Resultado</th>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Formato</th>
+                <th>Compañero</th>
+                <th>VS</th>
+                <th>Rivales</th>
+                <th>Resultado</th>
               </tr>
             </thead>
             <tbody id="tabla-body"></tbody>
@@ -158,6 +238,8 @@
           <button class="admin-only admin-new-btn" data-new="torneo">➕ Nuevo torneo</button>
         </div>
         <div class="record-badge">
+          <div class="total" id="t-record-total"></div>
+          <div class="total-lbl">Torneos jugados</div>
           <div class="big" id="t-record"></div>
           <div class="lbl">Campeón / Sin podio</div>
         </div>
@@ -167,23 +249,35 @@
         <div class="field"><label>Año</label>
           <div class="combo" id="t-combo-anio">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Año">
-            <div class="combo-panel"><ul class="combo-list"></ul></div>
-          </div></div>
+            <div class="combo-panel">
+              <ul class="combo-list"></ul>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Mes</label>
           <div class="combo" id="t-combo-mes">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Mes">
-            <div class="combo-panel"><ul class="combo-list"></ul></div>
-          </div></div>
+            <div class="combo-panel">
+              <ul class="combo-list"></ul>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Organizador</label>
           <div class="combo" id="t-combo-organizador">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Organizador">
-            <div class="combo-panel"><ul class="combo-list"></ul></div>
-          </div></div>
+            <div class="combo-panel">
+              <ul class="combo-list"></ul>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Categoría</label>
           <div class="combo" id="t-combo-categoria">
             <input type="text" class="combo-input" readonly placeholder="Todas" aria-label="Categoría">
-            <div class="combo-panel"><ul class="combo-list"></ul></div>
-          </div></div>
+            <div class="combo-panel">
+              <ul class="combo-list"></ul>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Compañero</label>
           <div class="combo" id="t-combo-companiero" data-search="1">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Compañero">
@@ -191,43 +285,81 @@
               <input type="text" class="combo-search" placeholder="Buscar…" aria-label="Buscar">
               <ul class="combo-list"></ul>
             </div>
-          </div></div>
+          </div>
+        </div>
         <div class="field"><label>Puesto</label>
           <div class="combo" id="t-combo-puesto">
             <input type="text" class="combo-input" readonly placeholder="Todos" aria-label="Puesto">
-            <div class="combo-panel"><ul class="combo-list"></ul></div>
-          </div></div>
+            <div class="combo-panel">
+              <ul class="combo-list"></ul>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Últimos N</label>
-          <input type="number" id="t-last-n" class="last-n-input" min="1" max="100" step="1"
-                 placeholder="Todos" aria-label="Últimos N torneos" inputmode="numeric">
+          <input type="number" id="t-last-n" class="last-n-input" min="1" max="100" step="1" placeholder="Todos"
+            aria-label="Últimos N torneos" inputmode="numeric">
         </div>
         <button class="reset" id="t-reset">Limpiar filtros</button>
       </section>
 
       <section class="kpis kpis-main">
-        <div class="kpi"><div class="label">Torneos jugados</div><div class="value" id="t-kpi-tj">–</div></div>
-        <div class="kpi gold"><div class="label">🥇 Campeón</div><div class="value" id="t-kpi-camp">–</div></div>
-        <div class="kpi silver"><div class="label">🥈 Subcampeón</div><div class="value" id="t-kpi-sub">–</div></div>
-        <div class="kpi"><div class="label">Podios totales</div><div class="value" id="t-kpi-podios">–</div></div>
-        <div class="kpi win"><div class="label">% Podios</div><div class="value" id="t-kpi-eff">–</div></div>
+        <div class="kpi">
+          <div class="label">Torneos jugados</div>
+          <div class="value" id="t-kpi-tj">–</div>
+        </div>
+        <div class="kpi gold">
+          <div class="label">🥇 Campeón</div>
+          <div class="value" id="t-kpi-camp">–</div>
+        </div>
+        <div class="kpi silver">
+          <div class="label">🥈 Subcampeón</div>
+          <div class="value" id="t-kpi-sub">–</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Podios totales</div>
+          <div class="value" id="t-kpi-podios">–</div>
+        </div>
+        <div class="kpi win">
+          <div class="label">% Podios</div>
+          <div class="value" id="t-kpi-eff">–</div>
+        </div>
       </section>
       <section class="kpis kpis-streak">
-        <div class="kpi"><div class="label">Semifinales alcanzadas</div><div class="value" id="t-kpi-semis">–</div></div>
-        <div class="kpi"><div class="label">Finales jugadas</div><div class="value" id="t-kpi-finales">–</div></div>
-        <div class="kpi"><div class="label">Instancia más frecuente</div><div class="value" id="t-kpi-inst">–</div></div>
+        <div class="kpi">
+          <div class="label">Semifinales alcanzadas</div>
+          <div class="value" id="t-kpi-semis">–</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Finales jugadas</div>
+          <div class="value" id="t-kpi-finales">–</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Instancia más frecuente</div>
+          <div class="value" id="t-kpi-inst">–</div>
+        </div>
       </section>
 
       <section class="grid">
-        <div class="card"><h3>Año · torneos y % podios</h3>
-          <div class="chart-box"><canvas id="t-chart-anio"></canvas></div></div>
-        <div class="card"><h3>Organizador · torneos y % podios</h3>
-          <div class="chart-box"><canvas id="t-chart-organizador"></canvas></div></div>
-        <div class="card"><h3>Categoría · torneos y % podios</h3>
-          <div class="chart-box"><canvas id="t-chart-categoria"></canvas></div></div>
-        <div class="card"><h3>Instancia máxima alcanzada · distribución</h3>
-          <div class="chart-box"><canvas id="t-chart-instancia"></canvas></div></div>
-        <div class="card full"><h3>Top 5 compañeros · más torneos jugados</h3>
-          <div class="chart-box tall"><canvas id="t-chart-comp"></canvas></div></div>
+        <div class="card">
+          <h3>Año · torneos y % podios</h3>
+          <div class="chart-box"><canvas id="t-chart-anio"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Organizador · torneos y % podios</h3>
+          <div class="chart-box"><canvas id="t-chart-organizador"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Categoría · torneos y % podios</h3>
+          <div class="chart-box"><canvas id="t-chart-categoria"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Instancia máxima alcanzada · distribución</h3>
+          <div class="chart-box"><canvas id="t-chart-instancia"></canvas></div>
+        </div>
+        <div class="card full">
+          <h3>Top 5 compañeros · más torneos jugados</h3>
+          <div class="chart-box tall"><canvas id="t-chart-comp"></canvas></div>
+        </div>
       </section>
 
       <section class="card full table-card">
@@ -236,8 +368,13 @@
           <table class="tabla">
             <thead>
               <tr>
-                <th>#</th><th>Fecha</th><th>Organizador</th><th>Compañero</th>
-                <th>Categoría</th><th>Instancia máx.</th><th>Puesto</th>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Organizador</th>
+                <th>Compañero</th>
+                <th>Categoría</th>
+                <th>Instancia máx.</th>
+                <th>Puesto</th>
               </tr>
             </thead>
             <tbody id="t-tabla-body"></tbody>
@@ -254,7 +391,8 @@
 
   <button id="wa-share" class="wa-fab" aria-label="Compartir estadísticas por WhatsApp" title="Compartir estadísticas">
     <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
-      <path fill="#fff" d="M16 3C9.4 3 4 8.4 4 15c0 2.1.6 4.2 1.6 6L4 27l6.2-1.6c1.7 1 3.7 1.5 5.8 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-1.9 0-3.7-.5-5.3-1.5l-.4-.2-3.7 1 1-3.6-.2-.4c-1-1.6-1.6-3.5-1.6-5.5C5.8 9.4 10.4 4.8 16 4.8S26.2 9.4 26.2 15 21.6 24.8 16 24.8zm5.6-7.3c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.5-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/>
+      <path fill="#fff"
+        d="M16 3C9.4 3 4 8.4 4 15c0 2.1.6 4.2 1.6 6L4 27l6.2-1.6c1.7 1 3.7 1.5 5.8 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-1.9 0-3.7-.5-5.3-1.5l-.4-.2-3.7 1 1-3.6-.2-.4c-1-1.6-1.6-3.5-1.6-5.5C5.8 9.4 10.4 4.8 16 4.8S26.2 9.4 26.2 15 21.6 24.8 16 24.8zm5.6-7.3c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.5-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4z" />
     </svg>
   </button>
 
@@ -304,4 +442,5 @@
     })();
   </script>
 </body>
+
 </html>

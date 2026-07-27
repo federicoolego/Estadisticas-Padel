@@ -360,6 +360,8 @@ function renderRecord(data) {
   const s = stats(data);
   el("record").innerHTML =
     `<span class="w">${s.pg}</span><span class="sep">/</span><span class="l">${s.pp}</span>`;
+  const totalEl = el("record-total");
+  if (totalEl) totalEl.textContent = s.pj;
 }
 
 function renderKPIs(data) {

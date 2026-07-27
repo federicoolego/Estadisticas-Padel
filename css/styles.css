@@ -511,3 +511,20 @@ footer {
   .tabs { width: 100%; }
   .tab { flex: 1; text-align: center; padding: 10px 8px; font-size: 12px; }
 }
+
+.record-badge .total{
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 3rem;
+  line-height: 1;
+  color: #e6e6e6;
+  text-align: center;
+}
+.record-badge .total-lbl{
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #9aa0a6;
+  text-align: center;
+  margin-bottom: .6rem;
+}
