@@ -1290,7 +1290,7 @@
     "anio": 2026,
     "cancha": "NODO",
     "formato": "PADEL + VERMUT",
-    "companiero": "Nico Marsili",
+    "companiero": "Nicolas Marsili",
     "rivales": "Fabi Serra - Gabriel Pagnanini",
     "resultado": "PP",
     "dia": "Domingo"
@@ -1302,7 +1302,7 @@
     "anio": 2026,
     "cancha": "NODO",
     "formato": "PADEL + VERMUT",
-    "companiero": "Nico Marsili",
+    "companiero": "Nicolas Marsili",
     "rivales": "Alejandro Lacour - Mariano Garcia",
     "resultado": "PG",
     "dia": "Domingo"
@@ -1314,7 +1314,7 @@
     "anio": 2026,
     "cancha": "NODO",
     "formato": "PADEL + VERMUT",
-    "companiero": "Nico Marsili",
+    "companiero": "Nicolas Marsili",
     "rivales": "Guille Giordano - Martin Mazza",
     "resultado": "PP",
     "dia": "Domingo"
@@ -1387,7 +1387,7 @@
     "cancha": "EL CLASICO",
     "formato": "TORNEO",
     "companiero": "German Villalba",
-    "rivales": "Bautista Lunardini - Nicolas Vizcarra",
+    "rivales": "Bautista Lunardini - Nicolas Viscarra",
     "resultado": "PG",
     "dia": "Domingo"
   },
@@ -2299,7 +2299,7 @@
     "cancha": "EL CLASICO",
     "formato": "TORNEO",
     "companiero": "German Villalba",
-    "rivales": "Leonardo Gomez - Nicolas Vizcarra",
+    "rivales": "Leonardo Gomez - Nicolas Viscarra",
     "resultado": "PG",
     "dia": "Viernes"
   },
@@ -2530,5 +2530,29 @@
     "rivales": "Alejandro Barberis - Ivan Barberis",
     "resultado": "PP",
     "dia": "Martes"
+  },
+  {
+    "id": 212,
+    "fecha": "2026-07-22",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "Cesar Melotta",
+    "rivales": "Franco Olego - Jose Delmoro",
+    "resultado": "PG",
+    "dia": "Miércoles"
+  },
+  {
+    "id": 213,
+    "fecha": "2026-07-23",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Matias Herrera - Nicolas Viscarra",
+    "resultado": "PP",
+    "dia": "Jueves"
   }
 ]
