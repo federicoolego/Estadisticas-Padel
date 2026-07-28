@@ -1219,7 +1219,7 @@
     "cancha": "NODO",
     "formato": "PADEL + VERMUT",
     "companiero": "Bruno Strappa",
-    "rivales": "Guille Giordano - Juan Pablo Capridi",
+    "rivales": "Guille Giordano - Gallo Capridi",
     "resultado": "PG",
     "dia": "Domingo"
   },
@@ -2554,5 +2554,17 @@
     "rivales": "Matias Herrera - Nicolas Viscarra",
     "resultado": "PP",
     "dia": "Jueves"
+  },
+  {
+    "id": 214,
+    "fecha": "2026-07-27",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Cesar Melotta - Franco Olego",
+    "resultado": "PG",
+    "dia": "Lunes"
   }
 ]
