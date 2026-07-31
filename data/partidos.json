@@ -2566,5 +2566,29 @@
     "rivales": "Cesar Melotta - Franco Olego",
     "resultado": "PG",
     "dia": "Lunes"
+  },
+  {
+    "id": 215,
+    "fecha": "2026-07-28",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Ivan Barberis - Nacho Lacarra",
+    "resultado": "PP",
+    "dia": "Martes"
+  },
+  {
+    "id": 216,
+    "fecha": "2026-07-30",
+    "mes": 7,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Cesar Melotta - Martin Mazza",
+    "resultado": "PP",
+    "dia": "Jueves"
   }
 ]
