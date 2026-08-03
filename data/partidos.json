@@ -2590,5 +2590,17 @@
     "rivales": "Cesar Melotta - Martin Mazza",
     "resultado": "PP",
     "dia": "Jueves"
+  },
+  {
+    "id": 217,
+    "fecha": "2026-08-01",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Cesar Melotta - Franco Olego",
+    "resultado": "PG",
+    "dia": "Sábado"
   }
 ]
