@@ -69,6 +69,7 @@ header.hero {
 .record-badge .big .w { color: var(--win); }
 .record-badge .big .sep { color: var(--muted); margin: 0 6px; }
 .record-badge .big .l { color: var(--loss); }
+.record-badge .big .m { color: #cbd5e1; }
 .record-badge .lbl { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
 
 /* Filters */

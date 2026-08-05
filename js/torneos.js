@@ -256,8 +256,13 @@
 
   function renderRecord(data) {
   const s = stats(data);
+  const sinPodio = s.tj - s.podios;
   el("t-record").innerHTML =
-    `<span class="w">${s.campeon}</span><span class="sep">/</span><span class="l">${s.tj - s.podios}</span>`;
+    `<span class="w">${s.campeon}</span>` +
+    `<span class="sep">/</span>` +
+    `<span class="m">${s.subcampeon}</span>` +
+    `<span class="sep">/</span>` +
+    `<span class="l">${sinPodio}</span>`;
   const totalEl = el("t-record-total");
   if (totalEl) totalEl.textContent = s.tj;
 }
