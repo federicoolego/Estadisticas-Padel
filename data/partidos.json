@@ -2602,5 +2602,65 @@
     "rivales": "Cesar Melotta - Franco Olego",
     "resultado": "PG",
     "dia": "Sábado"
+  },
+  {
+    "id": 218,
+    "fecha": "2026-08-04",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Lucho Rodriguez - Paolo Pavoni",
+    "resultado": "PG",
+    "dia": "Martes"
+  },
+  {
+    "id": 219,
+    "fecha": "2026-08-06",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Cesar Melotta - Lucho Vitali",
+    "resultado": "PG",
+    "dia": "Jueves"
+  },
+  {
+    "id": 220,
+    "fecha": "2026-08-07",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Jonathan Carro - Yamil Carro",
+    "resultado": "PP",
+    "dia": "Viernes"
+  },
+  {
+    "id": 221,
+    "fecha": "2026-08-07",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Beto Quaglini - Sergio Gutierrez",
+    "resultado": "PG",
+    "dia": "Viernes"
+  },
+  {
+    "id": 222,
+    "fecha": "2026-08-09",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Gallo Capridi - Nacho Lacarra",
+    "resultado": "PP",
+    "dia": "Domingo"
   }
 ]
