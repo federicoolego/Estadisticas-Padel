@@ -2662,5 +2662,17 @@
     "rivales": "Gallo Capridi - Nacho Lacarra",
     "resultado": "PP",
     "dia": "Domingo"
+  },
+  {
+    "id": 223,
+    "fecha": "2026-08-11",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "Rodrigo Sunsundegui",
+    "rivales": "Agustin Sanchez - Ivan Barberis",
+    "resultado": "PP",
+    "dia": "Martes"
   }
 ]
