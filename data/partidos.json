@@ -2674,5 +2674,17 @@
     "rivales": "Agustin Sanchez - Ivan Barberis",
     "resultado": "PP",
     "dia": "Martes"
+  },
+  {
+    "id": 224,
+    "fecha": "2026-08-13",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "Cesar Melotta",
+    "rivales": "Martin Mazza - Ruben De Rosa",
+    "resultado": "PG",
+    "dia": "Jueves"
   }
 ]
