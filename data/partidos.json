@@ -2722,5 +2722,77 @@
     "rivales": "Alejandro Barberis - Gaston Blanes",
     "resultado": "PP",
     "dia": "Martes"
+  },
+  {
+    "id": 228,
+    "fecha": "2026-08-19",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "DEFENSORES",
+    "formato": "TURNO",
+    "companiero": "Agustin Fernandez",
+    "rivales": "Fede Videla - Maxi Musante",
+    "resultado": "PG",
+    "dia": "Miércoles"
+  },
+  {
+    "id": 229,
+    "fecha": "2026-08-22",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Agustin Fernandez",
+    "rivales": "Andres Acuña - Juan Gaeto",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 230,
+    "fecha": "2026-08-22",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Agustin Fernandez",
+    "rivales": "Gallo Capridi - Lucho Caletrio",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 231,
+    "fecha": "2026-08-23",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Agustin Fernandez",
+    "rivales": "Guille Giordano - Rodrigo Sunsundegui",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 232,
+    "fecha": "2026-08-23",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Agustin Fernandez",
+    "rivales": "Fabi Serra - Grego Massot",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 233,
+    "fecha": "2026-08-23",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Agustin Fernandez",
+    "rivales": "Gallo Capridi - Lucho Caletrio",
+    "resultado": "PG",
+    "dia": "Domingo"
   }
 ]
