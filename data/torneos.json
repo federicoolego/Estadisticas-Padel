@@ -126,5 +126,21 @@
     "semifinal": null,
     "final": null,
     "puesto": null
+  },
+  {
+    "id": 9,
+    "fecha": "2026-08-22",
+    "mes": 8,
+    "anio": 2026,
+    "dia": "Sábado",
+    "organizador": "NODO",
+    "companiero": "Agustin Fernandez",
+    "categoria": "+10",
+    "zona": true,
+    "octavos": null,
+    "cuartos": true,
+    "semifinal": true,
+    "final": true,
+    "puesto": "campeon"
   }
 ]
