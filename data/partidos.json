@@ -2794,5 +2794,17 @@
     "rivales": "Gallo Capridi - Lucho Caletrio",
     "resultado": "PG",
     "dia": "Domingo"
+  },
+  {
+    "id": 234,
+    "fecha": "2026-08-25",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "Fabri Villar",
+    "rivales": "Diego Boffi - Lucas Pacchioni",
+    "resultado": "PG",
+    "dia": "Martes"
   }
 ]
