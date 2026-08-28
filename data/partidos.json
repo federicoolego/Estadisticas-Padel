@@ -2806,5 +2806,17 @@
     "rivales": "Diego Boffi - Lucas Pacchioni",
     "resultado": "PG",
     "dia": "Martes"
+  },
+  {
+    "id": 235,
+    "fecha": "2026-08-27",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "Cesar Melotta",
+    "rivales": "Martin Mazza - Uma Quaglini",
+    "resultado": "PP",
+    "dia": "Jueves"
   }
 ]
