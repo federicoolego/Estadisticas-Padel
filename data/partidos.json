@@ -2818,5 +2818,41 @@
     "rivales": "Martin Mazza - Uma Quaglini",
     "resultado": "PP",
     "dia": "Jueves"
+  },
+  {
+    "id": 236,
+    "fecha": "2026-08-29",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "COMPLEJO PM",
+    "formato": "TORNEO",
+    "companiero": "Cesar Melotta",
+    "rivales": "Matias Herrera - Yamil Carro",
+    "resultado": "PP",
+    "dia": "Sábado"
+  },
+  {
+    "id": 237,
+    "fecha": "2026-08-29",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "COMPLEJO PM",
+    "formato": "TORNEO",
+    "companiero": "Cesar Melotta",
+    "rivales": "Emanuel Cabrera - Bruno Rodriguez",
+    "resultado": "PP",
+    "dia": "Sábado"
+  },
+  {
+    "id": 238,
+    "fecha": "2026-08-30",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TURNO MIXTO",
+    "companiero": "Jimena Barberis",
+    "rivales": "Florencia Caletrio - Rodrigo Sunsundegui",
+    "resultado": "PP",
+    "dia": "Domingo"
   }
 ]
