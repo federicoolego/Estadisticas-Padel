@@ -142,5 +142,21 @@
     "semifinal": true,
     "final": true,
     "puesto": "campeon"
+  },
+  {
+    "id": 10,
+    "fecha": "2026-08-29",
+    "mes": 8,
+    "anio": 2026,
+    "dia": "Sábado",
+    "organizador": "COMPLEJO PM",
+    "companiero": "Cesar Melotta",
+    "categoria": "+12",
+    "zona": false,
+    "octavos": null,
+    "cuartos": null,
+    "semifinal": null,
+    "final": null,
+    "puesto": null
   }
 ]
