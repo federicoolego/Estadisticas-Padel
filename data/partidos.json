@@ -2854,5 +2854,29 @@
     "rivales": "Florencia Caletrio - Rodrigo Sunsundegui",
     "resultado": "PP",
     "dia": "Domingo"
+  },
+  {
+    "id": 239,
+    "fecha": "2026-08-31",
+    "mes": 8,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Ariel Viscarra - David Sanchez",
+    "resultado": "PG",
+    "dia": "Lunes"
+  },
+  {
+    "id": 240,
+    "fecha": "2026-09-01",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Lucho Vitali - Matias Franza",
+    "resultado": "PG",
+    "dia": "Martes"
   }
 ]
