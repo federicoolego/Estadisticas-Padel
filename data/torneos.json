@@ -158,5 +158,21 @@
     "semifinal": null,
     "final": null,
     "puesto": null
+  },
+  {
+    "id": 11,
+    "fecha": "2026-09-04",
+    "mes": 9,
+    "anio": 2026,
+    "dia": "Viernes",
+    "organizador": "DEFENSORES",
+    "companiero": "Matias Herrera",
+    "categoria": "+12",
+    "zona": false,
+    "octavos": null,
+    "cuartos": null,
+    "semifinal": null,
+    "final": null,
+    "puesto": null
   }
 ]
