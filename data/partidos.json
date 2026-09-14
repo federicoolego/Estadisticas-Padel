@@ -1351,7 +1351,7 @@
     "cancha": "EL CLASICO 2",
     "formato": "TORNEO",
     "companiero": "German Villalba",
-    "rivales": "Juani Coronel - Gonzalo Mendoza",
+    "rivales": "Juani Coronel - Chalo Mendoza",
     "resultado": "PG",
     "dia": "Viernes"
   },
@@ -2455,7 +2455,7 @@
     "cancha": "EL CLASICO 2",
     "formato": "TURNO",
     "companiero": "German Villalba",
-    "rivales": "Gonzalo Mendoza - Lucho Vitali",
+    "rivales": "Chalo Mendoza - Lucho Vitali",
     "resultado": "PG",
     "dia": "Martes"
   },
@@ -2479,7 +2479,7 @@
     "cancha": "EL CLASICO 2",
     "formato": "TURNO",
     "companiero": "German Villalba",
-    "rivales": "Gonzalo Mendoza - Lucho Vitali",
+    "rivales": "Chalo Mendoza - Lucho Vitali",
     "resultado": "PG",
     "dia": "Martes"
   },
@@ -2902,5 +2902,65 @@
     "rivales": "Armendariz - Novo",
     "resultado": "PP",
     "dia": "Sábado"
+  },
+  {
+    "id": 243,
+    "fecha": "2026-09-08",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Chalo Mendoza - Lucho Vitali",
+    "resultado": "PG",
+    "dia": "Martes"
+  },
+  {
+    "id": 244,
+    "fecha": "2026-09-10",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Chalo Mendoza - Lucho Vitali",
+    "resultado": "PG",
+    "dia": "Jueves"
+  },
+  {
+    "id": 245,
+    "fecha": "2026-09-12",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Agustin Fernandez",
+    "rivales": "Gallo Capridi - Nicolas Torrent",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 246,
+    "fecha": "2026-09-12",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Agustin Fernandez",
+    "rivales": "Fabian Ruiz - Ivo Gomez",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 247,
+    "fecha": "2026-09-13",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Agustin Fernandez",
+    "rivales": "Fabi Serra - Grego Massot",
+    "resultado": "PP",
+    "dia": "Domingo"
   }
 ]
