@@ -2962,5 +2962,41 @@
     "rivales": "Fabi Serra - Grego Massot",
     "resultado": "PP",
     "dia": "Domingo"
+  },
+  {
+    "id": 248,
+    "fecha": "2026-09-15",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Agustin Sanchez - Ivan Barberis",
+    "resultado": "PP",
+    "dia": "Martes"
+  },
+  {
+    "id": 249,
+    "fecha": "2026-09-18",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "COMPLEJO PM",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Jonathan Carro - Yamil Carro",
+    "resultado": "PP",
+    "dia": "Viernes"
+  },
+  {
+    "id": 250,
+    "fecha": "2026-09-20",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "COMPLEJO PM",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Nicolas Viscarra - Maxi Teseyra",
+    "resultado": "PP",
+    "dia": "Domingo"
   }
 ]
