@@ -3010,5 +3010,17 @@
     "rivales": "Gaston Blanes - Rodrigo Aguiar",
     "resultado": "PG",
     "dia": "Lunes"
+  },
+  {
+    "id": 252,
+    "fecha": "2026-09-22",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Juani Dentone - Lucho Vitali",
+    "resultado": "PG",
+    "dia": "Martes"
   }
 ]
