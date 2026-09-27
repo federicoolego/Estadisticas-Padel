@@ -3022,5 +3022,77 @@
     "rivales": "Juani Dentone - Lucho Vitali",
     "resultado": "PG",
     "dia": "Martes"
+  },
+  {
+    "id": 253,
+    "fecha": "2026-09-24",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TURNO",
+    "companiero": "Diego Boffi",
+    "rivales": "Cesar Melotta - Martin Mazza",
+    "resultado": "PP",
+    "dia": "Jueves"
+  },
+  {
+    "id": 254,
+    "fecha": "2026-09-26",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Barbara Marcili",
+    "rivales": "Florentina Chiappari - Jeronimo Dorado",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 255,
+    "fecha": "2026-09-26",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Barbara Marcili",
+    "rivales": "Agostina Dimena - Juan Gaeto",
+    "resultado": "PP",
+    "dia": "Sábado"
+  },
+  {
+    "id": 256,
+    "fecha": "2026-09-26",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Barbara Marcili",
+    "rivales": "German Villalba - Mariu Larralde",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 257,
+    "fecha": "2026-09-26",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Barbara Marcili",
+    "rivales": "Lautaro Guzman - Lucia Florenzano",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 258,
+    "fecha": "2026-09-26",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Barbara Marcili",
+    "rivales": "Florencia Caletrio - Grego Massot",
+    "resultado": "PP",
+    "dia": "Sábado"
   }
 ]
