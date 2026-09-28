@@ -3094,5 +3094,65 @@
     "rivales": "Florencia Caletrio - Grego Massot",
     "resultado": "PP",
     "dia": "Sábado"
+  },
+  {
+    "id": 259,
+    "fecha": "2026-09-27",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "DEFENSORES",
+    "formato": "TORNEO",
+    "companiero": "Lucho Caletrio",
+    "rivales": "Damian Zanandrea - Fito Garcia",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 260,
+    "fecha": "2026-09-27",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "DEFENSORES",
+    "formato": "TORNEO",
+    "companiero": "Lucho Caletrio",
+    "rivales": "Bautista Gonzalez - Jeronimo Dorado",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 261,
+    "fecha": "2026-09-27",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "DEFENSORES",
+    "formato": "TORNEO",
+    "companiero": "Lucho Caletrio",
+    "rivales": "Mateo Garcia - Mauro Maggiori",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 262,
+    "fecha": "2026-09-27",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "DEFENSORES",
+    "formato": "TORNEO",
+    "companiero": "Lucho Caletrio",
+    "rivales": "Espinoza - Mendoza",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 263,
+    "fecha": "2026-09-27",
+    "mes": 9,
+    "anio": 2026,
+    "cancha": "DEFENSORES",
+    "formato": "TORNEO",
+    "companiero": "Lucho Caletrio",
+    "rivales": "Ivo Gomez - Martin Pujol",
+    "resultado": "PG",
+    "dia": "Domingo"
   }
 ]
