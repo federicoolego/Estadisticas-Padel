@@ -215,12 +215,28 @@
     "dia": "Sábado",
     "organizador": "NODO",
     "companiero": "Barbara Marcili",
-    "categoria": "Mixto ÷12",
+    "categoria": "Mixto +12",
     "zona": true,
     "octavos": true,
     "cuartos": true,
     "semifinal": false,
     "final": null,
     "puesto": null
+  },
+  {
+    "id": 15,
+    "fecha": "2026-09-27",
+    "mes": 9,
+    "anio": 2026,
+    "dia": "Domingo",
+    "organizador": "DEFENSORES",
+    "companiero": "Lucho Caletrio",
+    "categoria": "+10",
+    "zona": true,
+    "octavos": null,
+    "cuartos": true,
+    "semifinal": true,
+    "final": true,
+    "puesto": "campeon"
   }
 ]
