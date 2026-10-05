@@ -3178,5 +3178,41 @@
     "rivales": "Lucho Vitali - Rodrigo Sunsundegui",
     "resultado": "PP",
     "dia": "Martes"
+  },
+  {
+    "id": 266,
+    "fecha": "2026-10-01",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "DOBLE FALTA",
+    "formato": "TURNO MIXTO",
+    "companiero": "Barbara Marcili",
+    "rivales": "Florencia Caletrio - Rodrigo Sunsundegui",
+    "resultado": "PP",
+    "dia": "Jueves"
+  },
+  {
+    "id": 267,
+    "fecha": "2026-10-03",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Cesar Melotta - Franco Olego",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 268,
+    "fecha": "2026-10-04",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TURNO",
+    "companiero": "Rodrigo Sunsundegui",
+    "rivales": "Fabi Serra - Grego Massot",
+    "resultado": "PG",
+    "dia": "Domingo"
   }
 ]
