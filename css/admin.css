@@ -13,7 +13,6 @@
 .admin-only { display: none !important; }
 body.is-admin .admin-only { display: inline-flex !important; }
 
-html.env-local #admin-toggle { display: none !important; }
 
 .admin-toggle,
 .env-toggle {
@@ -597,3 +596,27 @@ body.admin-modal-open { overflow: hidden; }
   color: #4ade80;
   font-size: 13px;
 }
+
+/* ===== Login obligatorio (auth gate) ===== */
+html.auth-pending .wrap,
+html.auth-pending .topbar,
+html.auth-pending #wa-share { display: none !important; }
+
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg);
+  background-image: radial-gradient(circle at 15% -10%, rgba(74,222,128,0.08), transparent 40%);
+}
+.auth-gate[hidden] { display: none; }
+.auth-gate-card { max-width: 400px; }
+.auth-gate-brand { font-size: 40px; line-height: 1; margin-bottom: 8px; }
+.auth-gate-checking { color: var(--muted); font-size: 14px; display: none; }
+html.auth-checking .auth-gate-checking { display: block; }
+html.auth-checking .auth-gate-form { display: none; }
+.auth-gate .admin-actions .admin-btn { width: 100%; }

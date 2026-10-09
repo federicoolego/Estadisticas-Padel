@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="auth-checking auth-pending">
 
 <head>
   <meta charset="UTF-8">
@@ -17,6 +17,28 @@
 </head>
 
 <body>
+
+  <!-- ================= LOGIN OBLIGATORIO ================= -->
+  <div id="auth-gate" class="auth-gate">
+    <div class="admin-modal auth-gate-card" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title">
+      <div class="auth-gate-brand">🎾</div>
+      <h2 class="admin-title" id="auth-gate-title">Pádel · Estadísticas</h2>
+      <p class="auth-gate-checking">Verificando sesión…</p>
+      <form id="auth-gate-form" class="admin-form auth-gate-form">
+        <p class="admin-sub">Ingresá con tu usuario para ver las estadísticas.</p>
+        <label>Email
+          <input type="email" name="email" required autocomplete="username">
+        </label>
+        <label>Contraseña
+          <input type="password" name="password" required autocomplete="current-password">
+        </label>
+        <p class="admin-err" id="auth-gate-err" hidden></p>
+        <div class="admin-actions">
+          <button type="submit" class="admin-btn primary">Entrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Barra de controles arriba a la derecha -->
   <div class="topbar">
@@ -402,13 +424,14 @@
   <!-- 1) Switch de entorno + SDK de Supabase (siempre cargado, liviano) + cliente condicional -->
   <script src="js/env.js?v=2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-client.js?v=1"></script>
+  <script src="js/supabase-client.js?v=2"></script>
+  <script src="js/auth-gate.js?v=1"></script>
 
   <!-- 2) App -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="js/partidos.js?v=2"></script>
   <script src="js/torneos.js?v=3"></script>
-  <script src="js/admin.js?v=2"></script>
+  <script src="js/admin.js?v=3"></script>
   <script>
     // ================= Tabs switcher =================
     (function () {
@@ -437,8 +460,8 @@
 
       tabs.forEach(t => t.addEventListener("click", () => activate(t.dataset.tab)));
 
-      // Inicial: Partidos
-      activate("partidos");
+      // Inicial: Partidos — recién cuando hay sesión (login obligatorio)
+      window.AUTH_READY.then(() => activate("partidos"));
     })();
   </script>
 </body>

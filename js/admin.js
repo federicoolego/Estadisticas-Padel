@@ -135,53 +135,18 @@
   window.sb.auth.onAuthStateChange(() => updateSessionUI());
   updateSessionUI();
 
+  // Con login obligatorio (auth-gate.js) siempre hay sesión acá:
+  // el botón Admin solo abre el menú. Si la sesión se perdió, recargamos → gate.
   toggleBtn.addEventListener("click", async () => {
     const { data: { session } } = await window.sb.auth.getSession();
     if (session) openAdminMenu(session.user.email);
-    else openLoginModal();
+    else location.reload();
   });
 
-  // ---------- Login ----------
-  function openLoginModal() {
-    openModal(`
-      <h2 class="admin-title">Iniciar sesión</h2>
-      <p class="admin-sub">Ingresá con tu usuario admin de Supabase.</p>
-      <form id="admin-login-form" class="admin-form">
-        <label>Email
-          <input type="email" name="email" required autocomplete="username" autofocus>
-        </label>
-        <label>Contraseña
-          <input type="password" name="password" required autocomplete="current-password">
-        </label>
-        <p class="admin-err" id="admin-login-err" hidden></p>
-        <div class="admin-actions">
-          <button type="button" class="admin-btn ghost" data-close>Cancelar</button>
-          <button type="submit" class="admin-btn primary">Entrar</button>
-        </div>
-      </form>
-    `);
-    $("#admin-login-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      const err = $("#admin-login-err");
-      err.hidden = true;
-      const btn = e.target.querySelector('button[type="submit"]');
-      btn.disabled = true; btn.textContent = "Entrando…";
-      const { error } = await window.sb.auth.signInWithPassword({
-        email: fd.get("email"), password: fd.get("password")
-      });
-      if (error) {
-        err.textContent = "No se pudo iniciar sesión. Revisá email y contraseña.";
-        err.hidden = false;
-        btn.disabled = false; btn.textContent = "Entrar";
-        return;
-      }
-      closeModal();
-      // Al loguear como admin, chequear inconsistencias entre JSON local y Supabase
-      setTimeout(() => runIntegrityCheck({ silentIfOk: false }), 300);
-    });
-    modalRoot.querySelector("[data-close]").addEventListener("click", closeModal);
-  }
+  // Al iniciar sesión desde el gate, chequear inconsistencias entre JSON local y Supabase
+  window.addEventListener("auth:login", () => {
+    setTimeout(() => runIntegrityCheck({ silentIfOk: false }), 300);
+  });
 
   function openAdminMenu(email) {
     openModal(`
