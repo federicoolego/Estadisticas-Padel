@@ -244,11 +244,13 @@ header.hero {
   overflow: hidden;
 }
 /* tarjeta con tooltip: necesita overflow visible */
-#kpi-card-actual, #kpi-card-prom, #kpi-card-sinjugar, #kpi-card-sinjugar-actual, #kpi-card-rp, #kpi-card-rn { overflow: visible; cursor: default; }
+#kpi-card-actual, #kpi-card-prom, #kpi-card-sinjugar, #kpi-card-sinjugar-actual, #kpi-card-comp, #kpi-card-riv, #kpi-card-rp, #kpi-card-rn { overflow: visible; cursor: default; }
 #kpi-card-actual[data-tip]::after,
 #kpi-card-prom[data-tip]::after,
 #kpi-card-sinjugar[data-tip]::after,
 #kpi-card-sinjugar-actual[data-tip]::after,
+#kpi-card-comp[data-tip]::after,
+#kpi-card-riv[data-tip]::after,
 #kpi-card-rp[data-tip]::after,
 #kpi-card-rn[data-tip]::after {
   content: attr(data-tip);
@@ -274,6 +276,8 @@ header.hero {
 #kpi-card-prom:hover[data-tip]::after,
 #kpi-card-sinjugar:hover[data-tip]::after,
 #kpi-card-sinjugar-actual:hover[data-tip]::after,
+#kpi-card-comp:hover[data-tip]::after,
+#kpi-card-riv:hover[data-tip]::after,
 #kpi-card-rp:hover[data-tip]::after,
 #kpi-card-rn:hover[data-tip]::after {
   opacity: 1;

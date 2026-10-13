@@ -448,6 +448,36 @@ function renderKPIs(data) {
     }
   }
 
+  // Compañeros y rivales distintos dentro del filtro.
+  // Leyenda y tooltip con el mismo rango de fechas que "Promedio partidos".
+  const companieros = new Set(data.map(m => (m.companiero || "").trim()).filter(Boolean));
+  const rivales = new Set();
+  data.forEach(m => splitRivals(m.rivales).forEach(p => rivales.add(p)));
+  const setDistinctKPI = (prefix, count) => {
+    const valEl = el(`kpi-${prefix}`);
+    const subEl = el(`kpi-${prefix}-sub`);
+    const cardEl = el(`kpi-card-${prefix}`);
+    if (s.pj === 0 || !s.fechaMin) {
+      valEl.textContent = "–";
+      subEl.textContent = "";
+      cardEl.removeAttribute("data-tip");
+      return;
+    }
+    const fmt = d => String(d.getDate()).padStart(2, "0") + "/" +
+                    String(d.getMonth() + 1).padStart(2, "0") + "/" +
+                    d.getFullYear();
+    valEl.textContent = count;
+    if (s.dias === 0) {
+      subEl.textContent = "mismo día";
+      cardEl.setAttribute("data-tip", fmt(s.fechaMin));
+    } else {
+      subEl.textContent = `${s.dias} ${s.dias === 1 ? "día" : "días"}`;
+      cardEl.setAttribute("data-tip", `${fmt(s.fechaMin)} – ${fmt(s.fechaMax)}`);
+    }
+  };
+  setDistinctKPI("comp", companieros.size);
+  setDistinctKPI("riv", rivales.size);
+
   const rp = streak(data, "PG");
   const rn = streak(data, "PP");
   el("kpi-rp").innerHTML = rp.max + (rp.max ? ` <small>(${rp.veces})</small>` : "");
