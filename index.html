@@ -12,7 +12,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=2">
   <link rel="stylesheet" href="css/admin.css">
 </head>
 
@@ -183,17 +183,29 @@
           <div class="sub" id="kpi-sinjugar-actual-sub"></div>
         </div>
         <div class="kpi" id="kpi-card-comp">
-          <div class="label">Compañeros distintos</div>
+          <div class="label">Compañeros</div>
           <div class="value" id="kpi-comp">–</div>
           <div class="sub" id="kpi-comp-sub"></div>
+          <div class="kpi-tip" id="kpi-comp-tip"></div>
         </div>
         <div class="kpi" id="kpi-card-riv">
-          <div class="label">Rivales distintos</div>
+          <div class="label">Rivales</div>
           <div class="value" id="kpi-riv">–</div>
           <div class="sub" id="kpi-riv-sub"></div>
+          <div class="kpi-tip" id="kpi-riv-tip"></div>
         </div>
       </section>
       <section class="kpis kpis-streak">
+        <div class="kpi" id="kpi-card-primero">
+          <div class="label">Primer partido</div>
+          <div class="value value-date" id="kpi-primero">–</div>
+          <div class="sub" id="kpi-primero-sub"></div>
+        </div>
+        <div class="kpi" id="kpi-card-ultimo">
+          <div class="label">Último partido</div>
+          <div class="value value-date" id="kpi-ultimo">–</div>
+          <div class="sub" id="kpi-ultimo-sub"></div>
+        </div>
         <div class="kpi win" id="kpi-card-rp">
           <div class="label">Mejor racha</div>
           <div class="value" id="kpi-rp">–</div>
@@ -439,7 +451,7 @@
 
   <!-- 2) App -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="js/partidos.js?v=2"></script>
+  <script src="js/partidos.js?v=3"></script>
   <script src="js/torneos.js?v=3"></script>
   <script src="js/admin.js?v=3"></script>
   <script>

@@ -449,34 +449,74 @@ function renderKPIs(data) {
   }
 
   // Compañeros y rivales distintos dentro del filtro.
-  // Leyenda y tooltip con el mismo rango de fechas que "Promedio partidos".
-  const companieros = new Set(data.map(m => (m.companiero || "").trim()).filter(Boolean));
-  const rivales = new Set();
-  data.forEach(m => splitRivals(m.rivales).forEach(p => rivales.add(p)));
-  const setDistinctKPI = (prefix, count) => {
+  // Leyenda con el mismo rango de fechas que "Promedio partidos";
+  // tooltip con el rango y, debajo, los nombres ordenados alfabéticamente.
+  const byName = (a, b) => a.localeCompare(b, "es", { sensitivity: "base" });
+  const companieros = [...new Set(data.map(m => (m.companiero || "").trim()).filter(Boolean))].sort(byName);
+  const rivalesSet = new Set();
+  data.forEach(m => splitRivals(m.rivales).forEach(p => rivalesSet.add(p)));
+  const rivales = [...rivalesSet].sort(byName);
+  const escHTML = str => String(str).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const setDistinctKPI = (prefix, nombres) => {
     const valEl = el(`kpi-${prefix}`);
     const subEl = el(`kpi-${prefix}-sub`);
-    const cardEl = el(`kpi-card-${prefix}`);
+    const tipEl = el(`kpi-${prefix}-tip`);
     if (s.pj === 0 || !s.fechaMin) {
       valEl.textContent = "–";
       subEl.textContent = "";
-      cardEl.removeAttribute("data-tip");
+      tipEl.innerHTML = "";
       return;
     }
     const fmt = d => String(d.getDate()).padStart(2, "0") + "/" +
                     String(d.getMonth() + 1).padStart(2, "0") + "/" +
                     d.getFullYear();
-    valEl.textContent = count;
+    valEl.textContent = nombres.length;
+    let rango;
     if (s.dias === 0) {
       subEl.textContent = "mismo día";
-      cardEl.setAttribute("data-tip", fmt(s.fechaMin));
+      rango = fmt(s.fechaMin);
     } else {
       subEl.textContent = `${s.dias} ${s.dias === 1 ? "día" : "días"}`;
-      cardEl.setAttribute("data-tip", `${fmt(s.fechaMin)} – ${fmt(s.fechaMax)}`);
+      rango = `${fmt(s.fechaMin)} – ${fmt(s.fechaMax)}`;
     }
+    tipEl.classList.toggle("dense", nombres.length > 60);
+    tipEl.innerHTML =
+      `<div class="tip-head">${rango}</div>` +
+      (nombres.length
+        ? `<ul class="tip-list">${nombres.map(n => `<li title="${escHTML(n)}">${escHTML(n)}</li>`).join("")}</ul>`
+        : "");
   };
-  setDistinctKPI("comp", companieros.size);
-  setDistinctKPI("riv", rivales.size);
+  setDistinctKPI("comp", companieros);
+  setDistinctKPI("riv", rivales);
+
+  // Primer y último partido del filtro (por fecha y, a igual fecha, por #)
+  const setMatchDateKPI = (prefix, m) => {
+    const valEl = el(`kpi-${prefix}`);
+    const subEl = el(`kpi-${prefix}-sub`);
+    const cardEl = el(`kpi-card-${prefix}`);
+    if (!m) {
+      valEl.textContent = "–";
+      subEl.textContent = "";
+      cardEl.removeAttribute("data-tip");
+      return;
+    }
+    const [y, mo, d] = m.fecha.split("-");
+    valEl.innerHTML = `${d}/${mo}<small>/${y}</small>`;
+    subEl.textContent = [m.dia, m.cancha].filter(Boolean).join(" · ");
+    const win = m.resultado === "PG";
+    cardEl.setAttribute("data-tip", [
+      `#${m.id}${m.formato ? " · " + m.formato : ""}`,
+      `Compañero: ${m.companiero || "—"}`,
+      `Rivales: ${m.rivales || "—"}`,
+      win ? "✅ Ganado" : "❌ Perdido",
+    ].join("\n"));
+  };
+  const conFecha = data
+    .filter(m => m.fecha)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.id - b.id);
+  setMatchDateKPI("primero", conFecha[0]);
+  setMatchDateKPI("ultimo", conFecha[conFecha.length - 1]);
 
   const rp = streak(data, "PG");
   const rn = streak(data, "PP");

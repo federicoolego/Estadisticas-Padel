@@ -175,7 +175,7 @@
     "cancha": "NODO",
     "formato": "TORNEO",
     "companiero": "Lucho Vitali",
-    "rivales": "Lima - Guerrero",
+    "rivales": "Lima - Petito Guerrero",
     "resultado": "PG",
     "dia": "Domingo"
   },
@@ -331,7 +331,7 @@
     "cancha": "NODO",
     "formato": "TURNO",
     "companiero": "Lucho Vitali",
-    "rivales": "Gabriel Pagnanini - Maxi Rey",
+    "rivales": "Gabriel Pagnanini - Maxi Dangelo",
     "resultado": "PP",
     "dia": "Martes"
   },
@@ -691,7 +691,7 @@
     "cancha": "NODO",
     "formato": "TORNEO",
     "companiero": "German Villalba",
-    "rivales": "Bruno Strappa - Guyo Di Bucci",
+    "rivales": "Bruno Strappa - Guyo Dibucci",
     "resultado": "PG",
     "dia": "Domingo"
   },
@@ -1711,7 +1711,7 @@
     "cancha": "NODO",
     "formato": "PADEL + VERMUT",
     "companiero": "Grego Massot",
-    "rivales": "Fabi Serra - Guyo Di Bucci",
+    "rivales": "Fabi Serra - Guyo Dibucci",
     "resultado": "PG",
     "dia": "Domingo"
   },
@@ -1915,7 +1915,7 @@
     "cancha": "NODO",
     "formato": "PADEL + VERMUT",
     "companiero": "Ivan Barberis",
-    "rivales": "Jose Lacarra - Guyo Di Bucci",
+    "rivales": "Jose Lacarra - Guyo Dibucci",
     "resultado": "PG",
     "dia": "Domingo"
   },
@@ -3238,5 +3238,113 @@
     "rivales": "David Sanchez - German Villalba",
     "resultado": "PG",
     "dia": "Jueves"
+  },
+  {
+    "id": 271,
+    "fecha": "2026-10-11",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "DOBLE FALTA",
+    "formato": "TORNEO",
+    "companiero": "Florencia Caletrio",
+    "rivales": "Ayelen Bizgarra - Blanco",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 272,
+    "fecha": "2026-10-11",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "DOBLE FALTA",
+    "formato": "TORNEO",
+    "companiero": "Florencia Caletrio",
+    "rivales": "Fabri Farias - Leilen Fleita",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 273,
+    "fecha": "2026-10-11",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "DOBLE FALTA",
+    "formato": "TORNEO",
+    "companiero": "Florencia Caletrio",
+    "rivales": "Lautaro Guzman - Serena Lencina",
+    "resultado": "PP",
+    "dia": "Domingo"
+  },
+  {
+    "id": 274,
+    "fecha": "2026-10-12",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "Franco Olego",
+    "rivales": "Lucho Vitali - Matias Franza",
+    "resultado": "PG",
+    "dia": "Lunes"
+  },
+  {
+    "id": 275,
+    "fecha": "2026-10-13",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Chalo Mendoza - Juan Mamberto",
+    "resultado": "PP",
+    "dia": "Martes"
+  },
+  {
+    "id": 276,
+    "fecha": "2026-10-16",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Joaquin Torrent",
+    "rivales": "Grego Massot - Sebastian Perez",
+    "resultado": "PG",
+    "dia": "Viernes"
+  },
+  {
+    "id": 277,
+    "fecha": "2026-10-16",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Joaquin Torrent",
+    "rivales": "David Sanchez - German Villalba",
+    "resultado": "PP",
+    "dia": "Viernes"
+  },
+  {
+    "id": 278,
+    "fecha": "2026-10-17",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Joaquin Torrent",
+    "rivales": "Guyo Dibucci - Kaku Pascuali",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 279,
+    "fecha": "2026-10-17",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Joaquin Torrent",
+    "rivales": "Maxi Dangelo - Pablo Prado",
+    "resultado": "PP",
+    "dia": "Sábado"
   }
 ]

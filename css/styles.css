@@ -244,7 +244,7 @@ header.hero {
   overflow: hidden;
 }
 /* tarjeta con tooltip: necesita overflow visible */
-#kpi-card-actual, #kpi-card-prom, #kpi-card-sinjugar, #kpi-card-sinjugar-actual, #kpi-card-comp, #kpi-card-riv, #kpi-card-rp, #kpi-card-rn { overflow: visible; cursor: default; }
+#kpi-card-actual, #kpi-card-prom, #kpi-card-sinjugar, #kpi-card-sinjugar-actual, #kpi-card-comp, #kpi-card-riv, #kpi-card-rp, #kpi-card-rn, #kpi-card-primero, #kpi-card-ultimo { overflow: visible; cursor: default; }
 #kpi-card-actual[data-tip]::after,
 #kpi-card-prom[data-tip]::after,
 #kpi-card-sinjugar[data-tip]::after,
@@ -252,6 +252,8 @@ header.hero {
 #kpi-card-comp[data-tip]::after,
 #kpi-card-riv[data-tip]::after,
 #kpi-card-rp[data-tip]::after,
+#kpi-card-primero[data-tip]::after,
+#kpi-card-ultimo[data-tip]::after,
 #kpi-card-rn[data-tip]::after {
   content: attr(data-tip);
   position: absolute;
@@ -279,6 +281,8 @@ header.hero {
 #kpi-card-comp:hover[data-tip]::after,
 #kpi-card-riv:hover[data-tip]::after,
 #kpi-card-rp:hover[data-tip]::after,
+#kpi-card-primero:hover[data-tip]::after,
+#kpi-card-ultimo:hover[data-tip]::after,
 #kpi-card-rn:hover[data-tip]::after {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
@@ -313,6 +317,51 @@ header.hero {
 .kpi .sub:empty { display: none; }
 .kpi.win .value { color: var(--win); }
 .kpi.loss .value { color: var(--loss); }
+/* KPIs de fecha (Primer / Último partido): valor más chico para que entre dd/mm/aaaa */
+.kpi .value.value-date { font-size: 32px; white-space: nowrap; }
+.kpi .value.value-date small { font-size: 18px; }
+
+/* Tooltip con listado de nombres (Compañeros / Rivales).
+   Se abre hacia abajo y en columnas porque la lista puede ser larga. */
+.kpi-tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(640px, 92vw);
+  max-height: 70vh;
+  overflow: hidden;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.4);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity .15s, transform .15s, visibility .15s;
+  z-index: 30;
+}
+.kpi-tip:empty { display: none; }
+.kpi:hover .kpi-tip { opacity: 1; visibility: visible; transform: translateY(0); }
+.kpi-tip .tip-head {
+  text-align: center;
+  font-weight: 600;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.kpi-tip .tip-list {
+  margin: 0; padding: 0; list-style: none;
+  column-width: 130px;
+  column-gap: 16px;
+  line-height: 1.45;
+}
+.kpi-tip .tip-list li { break-inside: avoid; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-tip.dense { font-size: 11px; }
+.kpi-tip.dense .tip-list { column-width: 120px; line-height: 1.35; }
 
 /* Charts */
 .grid {
@@ -419,6 +468,9 @@ footer {
 
 @media (max-width: 1000px) {
   .kpis-main, .kpis-streak { grid-template-columns: repeat(3, 1fr); }
+  /* En 3 columnas Compañeros queda a la izquierda: abrir el tooltip hacia la derecha */
+  #kpi-comp-tip { right: auto; left: 0; }
+  #kpi-riv-tip { right: auto; left: 50%; margin-left: calc(min(640px, 92vw) / -2); }
   .filters { grid-template-columns: repeat(3, 1fr); }
   .grid { grid-template-columns: 1fr; }
   .card.full { grid-column: span 1; }
@@ -432,6 +484,11 @@ footer {
   .kpis { grid-template-columns: 1fr 1fr; gap: 12px; }
   .kpi { padding: 16px 14px; }
   .kpi .value { font-size: 36px; }
+  .kpi .value.value-date { font-size: 26px; }
+  .kpi .value.value-date small { font-size: 15px; }
+  /* En 2 columnas Compañeros queda a la derecha y Rivales a la izquierda */
+  #kpi-comp-tip { left: auto; right: 0; }
+  #kpi-riv-tip { left: 0; right: auto; margin-left: 0; }
   .filters { grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px; }
   .filters .reset { grid-column: span 2; justify-self: stretch; text-align: center; }
   .card { padding: 16px 14px; }

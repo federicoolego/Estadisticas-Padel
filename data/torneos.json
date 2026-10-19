@@ -238,5 +238,37 @@
     "semifinal": true,
     "final": true,
     "puesto": "campeon"
+  },
+  {
+    "id": 16,
+    "fecha": "2026-10-11",
+    "mes": 10,
+    "anio": 2026,
+    "dia": "Domingo",
+    "organizador": "DOBLE FALTA",
+    "companiero": "Florencia Caletrio",
+    "categoria": "Mixto +12",
+    "zona": true,
+    "octavos": null,
+    "cuartos": null,
+    "semifinal": false,
+    "final": null,
+    "puesto": null
+  },
+  {
+    "id": 17,
+    "fecha": "2026-10-16",
+    "mes": 10,
+    "anio": 2026,
+    "dia": "Viernes",
+    "organizador": "NODO",
+    "companiero": "Joaquin Torrent",
+    "categoria": "+13",
+    "zona": true,
+    "octavos": null,
+    "cuartos": true,
+    "semifinal": false,
+    "final": null,
+    "puesto": null
   }
 ]
