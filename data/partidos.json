@@ -187,7 +187,7 @@
     "cancha": "NODO",
     "formato": "TORNEO",
     "companiero": "Lucho Vitali",
-    "rivales": "Melaragna - Musante",
+    "rivales": "Melaragna - Franco Musante",
     "resultado": "PP",
     "dia": "Domingo"
   },
@@ -3346,5 +3346,113 @@
     "rivales": "Maxi Dangelo - Pablo Prado",
     "resultado": "PP",
     "dia": "Sábado"
+  },
+  {
+    "id": 280,
+    "fecha": "2026-10-20",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Lucho Vitali - Matias Franza",
+    "resultado": "PG",
+    "dia": "Martes"
+  },
+  {
+    "id": 281,
+    "fecha": "2026-10-21",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "Jose Delmoro",
+    "rivales": "Andres Burgues - Valen Puebla",
+    "resultado": "PP",
+    "dia": "Miércoles"
+  },
+  {
+    "id": 282,
+    "fecha": "2026-10-22",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Fabri Villar - Lucas Pacchioni",
+    "resultado": "PP",
+    "dia": "Jueves"
+  },
+  {
+    "id": 283,
+    "fecha": "2026-10-22",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "Fabri Villar",
+    "rivales": "German Villalba - Lucas Pacchioni",
+    "resultado": "PG",
+    "dia": "Jueves"
+  },
+  {
+    "id": 284,
+    "fecha": "2026-10-23",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Damian Zanandrea - Dario Guerrina",
+    "resultado": "PG",
+    "dia": "Viernes"
+  },
+  {
+    "id": 285,
+    "fecha": "2026-10-23",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Beto Quaglini - David Sanchez",
+    "resultado": "PG",
+    "dia": "Viernes"
+  },
+  {
+    "id": 286,
+    "fecha": "2026-10-25",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Matias Franza - Sergio Gutierrez",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 287,
+    "fecha": "2026-10-25",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Damian Zanandrea - Dario Guerrina",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 288,
+    "fecha": "2026-10-25",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Fausto Roma - Ivan Vittori",
+    "resultado": "PG",
+    "dia": "Domingo"
   }
 ]
