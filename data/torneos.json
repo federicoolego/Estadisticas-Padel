@@ -270,5 +270,21 @@
     "semifinal": false,
     "final": null,
     "puesto": null
+  },
+  {
+    "id": 18,
+    "fecha": "2026-10-23",
+    "mes": 10,
+    "anio": 2026,
+    "dia": "Viernes",
+    "organizador": "CIRCUITO PM",
+    "companiero": "German Villalba",
+    "categoria": "6ta",
+    "zona": true,
+    "octavos": null,
+    "cuartos": true,
+    "semifinal": true,
+    "final": true,
+    "puesto": "campeon"
   }
 ]
