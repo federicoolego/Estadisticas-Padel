@@ -8,6 +8,8 @@ La app funciona en **dos modos** intercambiables desde la UI:
 
 El switch está arriba a la derecha y la preferencia se guarda en `localStorage`.
 
+Al lado hay un botón ☀️/🌙 para alternar entre **tema oscuro** (default) y **tema claro**. También se guarda en `localStorage`.
+
 ## 📂 Estructura
 
 ```
@@ -15,8 +17,10 @@ Estadisticas-Padel/
 ├── index.html                # Dashboard (KPIs + gráficos + filtros + tabs)
 ├── css/
 │   ├── styles.css            # Estilos base
-│   └── admin.css             # Estilos del switch de entorno y modo admin
+│   ├── admin.css             # Estilos del switch de entorno y modo admin
+│   └── theme.css             # Tema claro + botón de tema + gráfico de títulos
 ├── js/
+│   ├── theme.js              # Tema claro/oscuro (se carga en el <head>) + paletas de Chart.js
 │   ├── env.js                # Switch de entorno + loader unificado
 │   ├── supabase-client.js    # Cliente Supabase (solo se instancia en modo Prod)
 │   ├── partidos.js           # Tab Partidos: filtros, KPIs, charts, tabla
@@ -40,13 +44,14 @@ Estadisticas-Padel/
 **Tab Torneos**
 
 - **KPIs**: torneos jugados, 🥇 campeón, 🥈 subcampeón, podios totales, % podios, finales jugadas, semifinales alcanzadas, instancia más frecuente.
-- **Gráficos**: torneos y % podios por año, por organizador y por categoría; distribución de instancia máxima alcanzada; top 5 compañeros de torneo.
+- **Gráficos**: títulos en el tiempo (línea escalonada de títulos acumulados con categoría, compañero y fecha de cada campeonato; color del punto = compañero); torneos y % podios por año, por organizador y por categoría; distribución de instancia máxima alcanzada; top 5 compañeros de torneo.
 - **Filtros**: Año, Mes, Organizador, Categoría, Compañero, Puesto.
 - **Tabla** con el detalle completo de torneos.
 
 **Otros**
 
-- Botón flotante para **compartir estadísticas por WhatsApp** con imagen PNG generada en el navegador.
+- Botón flotante para **compartir estadísticas por WhatsApp** con imagen PNG generada en el navegador (siempre en tema oscuro).
+- Botón ☀️/🌙 en la barra superior para cambiar entre tema oscuro y claro.
 
 ## 🖥️ Modo Local (default)
 

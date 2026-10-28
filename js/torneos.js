@@ -321,7 +321,18 @@
   }
 
   // ---- Charts ----
-  const GRID = "#2a313c", TICK = "#8b949e", WIN = "#4ade80", LOSS = "#f87171";
+  // GRID / TICK dependen del tema (claro / oscuro) → se recalculan en applyPalette()
+  let GRID = "#2a313c", TICK = "#8b949e";
+  const WIN = "#4ade80", LOSS = "#f87171";
+  function applyPalette() {
+    const c = window.THEME ? window.THEME.colors() : null;
+    if (c) { GRID = c.grid; TICK = c.tick; }
+  }
+  applyPalette();
+  document.addEventListener("themechange", () => {
+    applyPalette();
+    if (initialized && ALL.length) renderCharts(applyFilters());
+  });
   const WIN_DARK = "#15803d";
   const GOLD = "#fbbf24", SILVER = "#cbd5e1", BRONZE = "#d97706";
 
@@ -429,11 +440,185 @@
     comboBar("t-chart-organizador", "t-organizador", { groupBy: t => t.organizador, order: "tj" });
     comboBar("t-chart-categoria", "t-categoria", { groupBy: t => t.categoria, order: "tj" });
 
+    // Títulos en el tiempo (categoría + compañero)
+    titulosTimeline(data);
+
     // Top 5 compañeros
     topCompanieros(data);
 
     // Distribución de instancia alcanzada
     instanciaChart(data);
+  }
+
+  // ---- Títulos en el tiempo ----
+  // Línea escalonada de títulos acumulados sobre un eje de tiempo real.
+  // Cada título es un punto (relleno = color del compañero, aro dorado) con
+  // categoría / compañero / fecha arriba. Los torneos sin título van como
+  // puntitos grises sobre la base, para dar contexto de frecuencia.
+  const MES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  const DAY_MS = 864e5;
+  const toDay = f => { const [y, m, d] = f.split("-").map(Number); return Date.UTC(y, m - 1, d) / DAY_MS; };
+  const fromDay = v => new Date(v * DAY_MS);
+  const shortName = n => {
+    const parts = String(n || "").trim().split(/\s+/);
+    return parts.length > 1 ? parts[0][0] + ". " + parts.slice(1).join(" ") : (parts[0] || "—");
+  };
+  const fechaCorta = f => { const d = fromDay(toDay(f)); return d.getUTCDate() + " " + MES_CORTO[d.getUTCMonth()] + " " + String(d.getUTCFullYear()).slice(2); };
+
+  function titulosTimeline(data) {
+    const C = window.THEME ? window.THEME.colors() : {
+      grid: GRID, tick: TICK, text: "#e6edf3", gold: GOLD, goldFill: "rgba(251,191,36,0.08)", other: "#3a4352",
+      partners: ["#60a5fa", "#f472b6", "#2dd4bf", "#a78bfa", "#fb923c", "#facc15", "#f87171", "#94a3b8"]
+    };
+    const conFecha = data.filter(t => t.fecha).sort((a, b) => a.fecha.localeCompare(b.fecha) || a.id - b.id);
+    const titulos = conFecha.filter(t => t.puesto === "campeon");
+
+    // Compañeros ordenados por cantidad de títulos → color estable dentro de la vista
+    const cnt = {};
+    titulos.forEach(t => { const k = t.companiero || "—"; cnt[k] = (cnt[k] || 0) + 1; });
+    const partners = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a] || a.localeCompare(b, "es"));
+    const colorOf = p => C.partners[partners.indexOf(p || "—") % C.partners.length];
+
+    const legend = el("t-titulos-legend");
+    if (legend) {
+      legend.innerHTML = partners.map(p =>
+        `<span><i style="background:${colorOf(p)}"></i><b>${p}</b> ×${cnt[p]}</span>`).join("");
+    }
+
+    destroyChart("t-titulos");
+    const canvas = el("t-chart-titulos");
+    if (!canvas) return;
+
+    let acc = 0;
+    const pts = titulos.map(t => ({ x: toDay(t.fecha), y: ++acc, t }));
+    const otros = conFecha.filter(t => t.puesto !== "campeon").map(t => ({ x: toDay(t.fecha), y: 0, t }));
+
+    const first = conFecha.length ? toDay(conFecha[0].fecha) : toDay(new Date().toISOString().slice(0, 10));
+    const last = conFecha.length ? toDay(conFecha[conFecha.length - 1].fecha) : first;
+    const span = Math.max(last - first, 60);
+    const x0 = first - Math.max(10, span * 0.03);
+    const x1 = last + Math.max(20, span * 0.06);
+    const step = [{ x: x0, y: 0 }, ...pts, { x: x1, y: acc }];
+
+    // Ticks en el día 1 de cada mes, raleados según el ancho (máx. 5 en mobile, 12 en desktop)
+    function monthTicks(maxTicks) {
+      const a = fromDay(x0), out = [];
+      let y = a.getUTCFullYear(), m = a.getUTCMonth() + 1;
+      for (;;) {
+        if (m > 11) { m = 0; y++; }
+        const v = Date.UTC(y, m, 1) / DAY_MS;
+        if (v > x1) break;
+        out.push(v); m++;
+      }
+      const every = Math.max(1, Math.ceil(out.length / maxTicks));
+      return out.filter((_, i) => i % every === 0);
+    }
+
+    const labelPlugin = {
+      id: "titulosLabels",
+      afterDatasetsDraw(ch) {
+        const ctx = ch.ctx, meta = ch.getDatasetMeta(1);
+        const compact = ch.width < 600;
+        if (!pts.length) {
+          const a = ch.chartArea;
+          ctx.save();
+          ctx.textAlign = "center"; ctx.fillStyle = C.tick;
+          ctx.font = "500 13px Inter, sans-serif";
+          ctx.fillText("Sin títulos con estos filtros", (a.left + a.right) / 2, (a.top + a.bottom) / 2);
+          ctx.restore();
+          return;
+        }
+        let prevX = -Infinity, prevLevel = 0;
+        const minGap = compact ? 44 : 96;
+        meta.data.forEach((p, i) => {
+          const t = pts[i].t;
+          // Si dos títulos quedan muy pegados, el segundo sube un escalón de texto
+          const level = (p.x - prevX < minGap) ? (prevLevel + 1) % (compact ? 3 : 2) : 0;
+          prevX = p.x; prevLevel = level;
+          const base = p.y - 18 - level * (compact ? 18 : 46);
+          ctx.save();
+          ctx.textAlign = "center";
+          if (level) {
+            ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y - 12); ctx.lineTo(p.x, base + 4); ctx.stroke();
+          }
+          if (compact) {
+            ctx.font = "700 14px 'Barlow Condensed', sans-serif";
+            ctx.fillStyle = C.gold;
+            ctx.fillText(t.categoria || "🏆", p.x, base);
+          } else {
+            ctx.font = "700 17px 'Barlow Condensed', sans-serif";
+            ctx.fillStyle = C.gold;
+            ctx.fillText("🏆 " + (t.categoria || ""), p.x, base - 30);
+            ctx.font = "600 12px Inter, sans-serif";
+            ctx.fillStyle = colorOf(t.companiero);
+            ctx.fillText(shortName(t.companiero), p.x, base - 14);
+            ctx.font = "500 11px Inter, sans-serif";
+            ctx.fillStyle = C.tick;
+            ctx.fillText(fechaCorta(t.fecha), p.x, base);
+          }
+          ctx.restore();
+        });
+      }
+    };
+
+    charts["t-titulos"] = new Chart(canvas, {
+      data: {
+        datasets: [
+          { type: "line", label: "Títulos acumulados", data: step, stepped: "before",
+            borderColor: C.gold, borderWidth: 2, backgroundColor: C.goldFill, fill: true,
+            pointRadius: 0, pointHoverRadius: 0, order: 3 },
+          { type: "scatter", label: "Título", data: pts,
+            pointRadius: 9, pointHoverRadius: 11,
+            pointBackgroundColor: pts.map(p => colorOf(p.t.companiero)),
+            pointBorderColor: C.gold, pointBorderWidth: 3, order: 1 },
+          { type: "scatter", label: "Torneo sin título", data: otros,
+            pointRadius: 3.5, pointHoverRadius: 5,
+            pointBackgroundColor: C.other, pointBorderWidth: 0, order: 2 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 6, right: 12 } },
+        interaction: { mode: "nearest", intersect: true },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            filter: i => i.datasetIndex !== 0,
+            callbacks: {
+              title: items => {
+                const t = items[0].raw.t;
+                return t ? `${fechaCorta(t.fecha)} · ${t.organizador || "—"}` : "";
+              },
+              label: c => {
+                const t = c.raw.t;
+                if (!t) return "";
+                if (c.datasetIndex === 1) return `🏆 Campeón ${t.categoria || ""} con ${t.companiero || "—"} (título #${c.raw.y})`;
+                const p = PUESTO_LABEL[t.puesto] || "Sin podio";
+                return `${p} · ${t.categoria || "—"} con ${t.companiero || "—"}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: "linear", min: x0, max: x1,
+            grid: { color: GRID }, ticks: {
+              color: TICK, autoSkip: false, maxRotation: 0,
+              callback: v => { const d = fromDay(v); return MES_CORTO[d.getUTCMonth()] + " " + String(d.getUTCFullYear()).slice(2); }
+            },
+            afterBuildTicks: axis => { axis.ticks = monthTicks(axis.chart.width < 600 ? 5 : 12).map(value => ({ value })); }
+          },
+          y: {
+            min: 0, max: acc + (acc ? 3 : 1),
+            grid: { color: GRID },
+            ticks: { color: TICK, stepSize: 1, precision: 0, callback: v => (v <= acc ? v : "") },
+            title: { display: true, text: "Títulos acumulados", color: TICK }
+          }
+        }
+      },
+      plugins: [labelPlugin]
+    });
   }
 
   function topCompanieros(data) {

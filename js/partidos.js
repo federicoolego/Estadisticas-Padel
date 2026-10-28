@@ -596,9 +596,20 @@ function renderKPIs(data) {
 }
 
 // ---- Chart helpers ----
-const GRID = "#2a313c", TICK = "#8b949e", WIN = "#4ade80", LOSS = "#f87171", ACCENT = "#2563eb";
+// GRID / TICK dependen del tema (claro / oscuro) → se recalculan en applyPalette()
+let GRID = "#2a313c", TICK = "#8b949e";
+const WIN = "#4ade80", LOSS = "#f87171", ACCENT = "#2563eb";
 const WIN_DARK = "#15803d", LOSS_DARK = "#b91c1c";
-Chart.defaults.color = TICK;
+function applyPalette() {
+  const c = window.THEME ? window.THEME.colors() : null;
+  if (c) { GRID = c.grid; TICK = c.tick; }
+  Chart.defaults.color = TICK;
+}
+applyPalette();
+document.addEventListener("themechange", () => {
+  applyPalette();
+  if (ALL.length) renderCharts(applyFilters());
+});
 Chart.defaults.font.family = "Inter, sans-serif";
 
 function destroyChart(k) { if (charts[k]) { charts[k].destroy(); delete charts[k]; } }

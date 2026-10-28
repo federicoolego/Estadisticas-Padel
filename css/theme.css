@@ -1,0 +1,101 @@
+/* ===== Tema claro / oscuro =====
+   El tema oscuro es el definido en styles.css (:root).
+   Acá van: el botón de cambio de tema, los overrides del tema claro
+   y los estilos del gráfico "Títulos en el tiempo". */
+
+/* ---- Botón de tema (topbar fija, arriba a la derecha) ---- */
+.theme-toggle {
+  width: 38px; height: 38px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 17px; line-height: 1;
+  transition: background 0.15s, border-color 0.15s, transform 0.2s;
+}
+.theme-toggle:hover { background: var(--panel-2); border-color: var(--gold, #fbbf24); }
+.theme-toggle:active { transform: rotate(-20deg) scale(0.95); }
+.theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .theme-toggle { width: 32px; height: 32px; font-size: 15px; }
+}
+
+/* ---- Gráfico: títulos en el tiempo ---- */
+.legend-partners {
+  display: flex; flex-wrap: wrap; gap: 6px 16px;
+  margin: -4px 0 12px;
+  font-size: 12px; color: var(--muted);
+}
+.legend-partners:empty { display: none; }
+.legend-partners i {
+  display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  margin-right: 6px; vertical-align: -1px;
+}
+.legend-partners b { color: var(--text); font-weight: 600; }
+.chart-box.timeline { height: 340px; }
+@media (max-width: 640px) { .chart-box.timeline { height: 300px; } }
+
+/* ================= TEMA CLARO ================= */
+html[data-theme="light"] {
+  --bg: #f4f6f8;
+  --panel: #ffffff;
+  --panel-2: #eef1f5;
+  --border: #d6dce4;
+  --text: #1b2230;
+  --muted: #5d6878;
+  --accent: #16a34a;
+  --accent-dim: #15803d;
+  --loss: #dc2626;
+  --win: #16a34a;
+  --gold: #d97706;
+  color-scheme: light;
+}
+html[data-theme="dark"] { color-scheme: dark; }
+
+html[data-theme="light"] body,
+html[data-theme="light"] .auth-gate {
+  background-image: radial-gradient(circle at 15% -10%, rgba(22,163,74,0.07), transparent 40%);
+}
+
+/* Textos fijos que estaban pensados para fondo oscuro */
+html[data-theme="light"] .record-badge .total { color: var(--text); }
+html[data-theme="light"] .record-badge .total-lbl { color: var(--muted); }
+html[data-theme="light"] .record-badge .big .m { color: #64748b; }
+html[data-theme="light"] .tabla tbody td { border-bottom-color: #e6eaef; }
+html[data-theme="light"] .tab.active,
+html[data-theme="light"] .admin-new-btn,
+html[data-theme="light"] .admin-btn.primary { color: #ffffff; }
+html[data-theme="light"] .combo-opt .chk.on::after { border-color: #ffffff; }
+
+/* Sombras más suaves */
+html[data-theme="light"] .combo-panel,
+html[data-theme="light"] .kpi-tip,
+html[data-theme="light"] .admin-combo-panel { box-shadow: 0 8px 22px rgba(27,34,48,0.12); }
+html[data-theme="light"] .admin-modal { box-shadow: 0 20px 60px rgba(27,34,48,0.18); }
+html[data-theme="light"] .admin-backdrop { background: rgba(27,34,48,0.35); }
+
+/* Oro / plata / bronce con contraste sobre blanco */
+html[data-theme="light"] .kpi.gold::before { background: #d97706; }
+html[data-theme="light"] .kpi.gold .value { color: #d97706; }
+html[data-theme="light"] .kpi.silver::before { background: #94a3b8; }
+html[data-theme="light"] .kpi.silver .value { color: #64748b; }
+html[data-theme="light"] .badge.b-gold { background: rgba(217,119,6,0.12); color: #b45309; }
+html[data-theme="light"] .badge.b-silver { background: rgba(100,116,139,0.14); color: #475569; }
+html[data-theme="light"] .badge.b-bronze { background: rgba(180,83,9,0.12); color: #9a3412; }
+html[data-theme="light"] .badge.b-win { background: rgba(22,163,74,0.12); }
+html[data-theme="light"] .badge.b-loss { background: rgba(220,38,38,0.10); }
+
+/* Admin */
+html[data-theme="light"] .admin-combo-panel { background: var(--panel-2); }
+html[data-theme="light"] .admin-form input::placeholder,
+html[data-theme="light"] .admin-combo-input::placeholder,
+html[data-theme="light"] .catalog-toolbar input[type="search"]::placeholder,
+html[data-theme="light"] .catalog-edit-input::placeholder { color: #9aa4b2; }
+html[data-theme="light"] .catalog-row:hover:not(.editing) { background: rgba(27,34,48,0.03); }
+html[data-theme="light"] .integrity-badge { color: #b45309; }
+html[data-theme="light"] .integrity-badge.ok,
+html[data-theme="light"] .integrity-prod,
+html[data-theme="light"] .integrity-ok-msg { color: #15803d; }
+html[data-theme="light"] .integrity-local { color: #b45309; }
