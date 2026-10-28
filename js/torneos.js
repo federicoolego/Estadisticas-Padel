@@ -665,7 +665,7 @@
             pointRadius: 7 * fs, pointHoverRadius: 9 * fs,
             pointBackgroundColor: m.subPts.map(p => colorOf(p.t.companiero)),
             pointBorderColor: C.silver, pointBorderWidth: 3 * fs, order: 2 },
-          { type: "scatter", label: "Torneo sin podio", data: m.otros,
+          { type: "scatter", label: "Otros torneos", data: m.otros,
             pointRadius: 3.5 * fs, pointHoverRadius: 5 * fs,
             pointBackgroundColor: C.other, pointBorderWidth: 0, order: 3 }
         ]
@@ -691,7 +691,10 @@
                 if (!t) return "";
                 if (c.datasetIndex === 1) return `🏆 Campeón ${t.categoria || ""} con ${t.companiero || "—"} (título #${c.raw.y})`;
                 if (c.datasetIndex === 2) return `🥈 Subcampeón ${t.categoria || ""} con ${t.companiero || "—"}`;
-                const p = PUESTO_LABEL[t.puesto] || "Sin podio";
+                // Torneos sin título ni subcampeonato: mostrar la instancia máxima alcanzada
+                const inst = instanciaMaxima(t);
+                const p = t.puesto === "tercero" ? PUESTO_LABEL.tercero
+                  : inst ? `Instancia máx.: ${ETAPA_LABEL[inst]}` : "Instancia máx.: sin dato";
                 return `${p} · ${t.categoria || "—"} con ${t.companiero || "—"}`;
               }
             }
