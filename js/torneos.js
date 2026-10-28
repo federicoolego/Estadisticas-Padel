@@ -440,7 +440,7 @@
     comboBar("t-chart-organizador", "t-organizador", { groupBy: t => t.organizador, order: "tj" });
     comboBar("t-chart-categoria", "t-categoria", { groupBy: t => t.categoria, order: "tj" });
 
-    // Títulos en el tiempo (categoría + compañero)
+    // Títulos y subcampeonatos en el tiempo (categoría + compañero)
     titulosTimeline(data);
 
     // Top 5 compañeros
@@ -450,11 +450,14 @@
     instanciaChart(data);
   }
 
-  // ---- Títulos en el tiempo ----
+  // ---- Títulos y subcampeonatos en el tiempo ----
   // Línea escalonada de títulos acumulados sobre un eje de tiempo real.
-  // Cada título es un punto (relleno = color del compañero, aro dorado) con
-  // categoría / compañero / fecha arriba. Los torneos sin título van como
-  // puntitos grises sobre la base, para dar contexto de frecuencia.
+  //  · Título: punto con aro dorado (relleno = color del compañero); suma un escalón.
+  //    Arriba: 🏆 categoría / compañero / fecha.
+  //  · Subcampeonato: punto con aro plateado sobre el escalón vigente; NO suma.
+  //    Abajo: 🥈 categoría / compañero.
+  //  · Torneos sin podio: puntitos grises sobre la base, para dar contexto de frecuencia.
+  // La misma configuración se usa en pantalla y para la imagen de WhatsApp.
   const MES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   const DAY_MS = 864e5;
   const toDay = f => { const [y, m, d] = f.split("-").map(Number); return Date.UTC(y, m - 1, d) / DAY_MS; };
@@ -465,33 +468,35 @@
   };
   const fechaCorta = f => { const d = fromDay(toDay(f)); return d.getUTCDate() + " " + MES_CORTO[d.getUTCMonth()] + " " + String(d.getUTCFullYear()).slice(2); };
 
-  function titulosTimeline(data) {
-    const C = window.THEME ? window.THEME.colors() : {
-      grid: GRID, tick: TICK, text: "#e6edf3", gold: GOLD, goldFill: "rgba(251,191,36,0.08)", other: "#3a4352",
-      partners: ["#60a5fa", "#f472b6", "#2dd4bf", "#a78bfa", "#fb923c", "#facc15", "#f87171", "#94a3b8"]
-    };
+  const FALLBACK_PALETTE = {
+    grid: "#2a313c", tick: "#8b949e", text: "#e6edf3", gold: "#fbbf24", goldFill: "rgba(251,191,36,0.08)",
+    silver: "#cbd5e1", silverText: "#cbd5e1", other: "#3a4352",
+    partners: ["#60a5fa", "#f472b6", "#2dd4bf", "#a78bfa", "#fb923c", "#facc15", "#f87171", "#94a3b8"]
+  };
+  const paletteOf = name => (window.THEME
+    ? (name ? window.THEME.palette(name) : window.THEME.colors())
+    : FALLBACK_PALETTE);
+
+  // Modelo de datos del gráfico (independiente de colores y tamaños)
+  function titulosModel(data) {
     const conFecha = data.filter(t => t.fecha).sort((a, b) => a.fecha.localeCompare(b.fecha) || a.id - b.id);
     const titulos = conFecha.filter(t => t.puesto === "campeon");
+    const subs = conFecha.filter(t => t.puesto === "subcampeon");
 
-    // Compañeros ordenados por cantidad de títulos → color estable dentro de la vista
-    const cnt = {};
-    titulos.forEach(t => { const k = t.companiero || "—"; cnt[k] = (cnt[k] || 0) + 1; });
-    const partners = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a] || a.localeCompare(b, "es"));
-    const colorOf = p => C.partners[partners.indexOf(p || "—") % C.partners.length];
-
-    const legend = el("t-titulos-legend");
-    if (legend) {
-      legend.innerHTML = partners.map(p =>
-        `<span><i style="background:${colorOf(p)}"></i><b>${p}</b> ×${cnt[p]}</span>`).join("");
-    }
-
-    destroyChart("t-titulos");
-    const canvas = el("t-chart-titulos");
-    if (!canvas) return;
+    // Compañeros ordenados por títulos, después por subcampeonatos → color estable dentro de la vista
+    const stats = {};
+    const bump = (t, k) => { const n = t.companiero || "—"; (stats[n] = stats[n] || { camp: 0, sub: 0 })[k]++; };
+    titulos.forEach(t => bump(t, "camp"));
+    subs.forEach(t => bump(t, "sub"));
+    const partners = Object.keys(stats).sort((a, b) =>
+      stats[b].camp - stats[a].camp || stats[b].sub - stats[a].sub || a.localeCompare(b, "es"));
 
     let acc = 0;
     const pts = titulos.map(t => ({ x: toDay(t.fecha), y: ++acc, t }));
-    const otros = conFecha.filter(t => t.puesto !== "campeon").map(t => ({ x: toDay(t.fecha), y: 0, t }));
+    // Subcampeonato: se apoya en el escalón vigente a esa fecha (títulos hasta ese día inclusive)
+    const subPts = subs.map(t => ({ x: toDay(t.fecha), y: titulos.filter(c => c.fecha <= t.fecha).length, t }));
+    const otros = conFecha.filter(t => t.puesto !== "campeon" && t.puesto !== "subcampeon")
+      .map(t => ({ x: toDay(t.fecha), y: 0, t }));
 
     const first = conFecha.length ? toDay(conFecha[0].fecha) : toDay(new Date().toISOString().slice(0, 10));
     const last = conFecha.length ? toDay(conFecha[conFecha.length - 1].fecha) : first;
@@ -500,15 +505,38 @@
     const x1 = last + Math.max(20, span * 0.06);
     const step = [{ x: x0, y: 0 }, ...pts, { x: x1, y: acc }];
 
+    return { pts, subPts, otros, step, acc, x0, x1, partners, stats, nTitulos: titulos.length, nSubs: subs.length };
+  }
+
+  function partnerColor(m, C, name) {
+    return C.partners[m.partners.indexOf(name || "—") % C.partners.length];
+  }
+
+  function legendHTML(m, C) {
+    return m.partners.map(p => {
+      const s = m.stats[p], parts = [];
+      if (s.camp) parts.push(`🏆 ${s.camp}`);
+      if (s.sub) parts.push(`🥈 ${s.sub}`);
+      return `<span><i style="background:${partnerColor(m, C, p)}"></i><b>${p}</b> ${parts.join(" · ")}</span>`;
+    }).join("");
+  }
+
+  // Configuración de Chart.js. opts.scale agranda textos y puntos (imagen de WhatsApp);
+  // opts.compact fuerza / desactiva el modo compacto (por defecto: ancho < 600px).
+  function titulosConfig(m, C, opts = {}) {
+    const fs = opts.scale || 1;
+    const colorOf = name => partnerColor(m, C, name);
+    const isCompact = ch => (opts.compact !== undefined ? opts.compact : ch.width < 600);
+
     // Ticks en el día 1 de cada mes, raleados según el ancho (máx. 5 en mobile, 12 en desktop)
     function monthTicks(maxTicks) {
-      const a = fromDay(x0), out = [];
-      let y = a.getUTCFullYear(), m = a.getUTCMonth() + 1;
+      const a = fromDay(m.x0), out = [];
+      let y = a.getUTCFullYear(), mo = a.getUTCMonth() + 1;
       for (;;) {
-        if (m > 11) { m = 0; y++; }
-        const v = Date.UTC(y, m, 1) / DAY_MS;
-        if (v > x1) break;
-        out.push(v); m++;
+        if (mo > 11) { mo = 0; y++; }
+        const v = Date.UTC(y, mo, 1) / DAY_MS;
+        if (v > m.x1) break;
+        out.push(v); mo++;
       }
       const every = Math.max(1, Math.ceil(out.length / maxTicks));
       return out.filter((_, i) => i % every === 0);
@@ -517,73 +545,141 @@
     const labelPlugin = {
       id: "titulosLabels",
       afterDatasetsDraw(ch) {
-        const ctx = ch.ctx, meta = ch.getDatasetMeta(1);
-        const compact = ch.width < 600;
-        if (!pts.length) {
-          const a = ch.chartArea;
+        const ctx = ch.ctx, area = ch.chartArea;
+        const compact = isCompact(ch);
+        if (!m.pts.length && !m.subPts.length) {
           ctx.save();
           ctx.textAlign = "center"; ctx.fillStyle = C.tick;
-          ctx.font = "500 13px Inter, sans-serif";
-          ctx.fillText("Sin títulos con estos filtros", (a.left + a.right) / 2, (a.top + a.bottom) / 2);
+          ctx.font = `500 ${13 * fs}px Inter, sans-serif`;
+          ctx.fillText("Sin títulos ni subcampeonatos con estos filtros", (area.left + area.right) / 2, (area.top + area.bottom) / 2);
           ctx.restore();
           return;
         }
-        let prevX = -Infinity, prevLevel = 0;
-        const minGap = compact ? 44 : 96;
-        meta.data.forEach((p, i) => {
-          const t = pts[i].t;
-          // Si dos títulos quedan muy pegados, el segundo sube un escalón de texto
-          const level = (p.x - prevX < minGap) ? (prevLevel + 1) % (compact ? 3 : 2) : 0;
-          prevX = p.x; prevLevel = level;
-          const base = p.y - 18 - level * (compact ? 18 : 46);
+
+        // Ubicación de etiquetas sin superposición: cada etiqueta prueba posiciones
+        // candidatas (arriba, a los costados, más arriba…) y se queda con la primera
+        // que no pisa otra etiqueta ni otro punto. Si se aleja, lleva una línea guía.
+        const placed = [];
+        const hit = (r, q) => r.l < q.r && r.r > q.l && r.t < q.b && r.b > q.t;
+        const pointBoxes = [1, 2].flatMap(di => ch.getDatasetMeta(di).data.map(p => {
+          const rr = (di === 1 ? 12 : 10) * fs;
+          return { l: p.x - rr, r: p.x + rr, t: p.y - rr, b: p.y + rr, x: p.x, y: p.y };
+        }));
+        const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+        function drawLabel(p, lines, candidates) {
+          // lines: [font, text, color, baselineOffsetDesdeArriba]; h: alto del bloque
           ctx.save();
+          const w = Math.max(...lines.map(([f, txt]) => { ctx.font = f; return ctx.measureText(txt).width; })) + 8 * fs;
+          const h = lines.h;
+          const obstacles = placed.concat(pointBoxes.filter(q => q.x !== p.x || q.y !== p.y));
+          const rectAt = (cx, ty) => ({ l: cx - w / 2, r: cx + w / 2, t: ty, b: ty + h });
+          const ok = r => r.t >= area.top - 2 && r.b <= area.bottom - 2 &&
+            r.l >= 0 && r.r <= ch.width && !obstacles.some(q => hit(r, q));
+          let best = null;
+          for (const c of candidates(w, h)) { if (ok(rectAt(c.cx, c.ty))) { best = c; break; } }
+          if (!best) best = candidates(w, h).next().value;  // sin lugar libre: posición por defecto
+          const r = rectAt(best.cx, best.ty);
+          placed.push(r);
+          // línea guía si la etiqueta quedó lejos del punto
+          const gx = clamp(p.x, r.l, r.r), gy = clamp(p.y, r.t, r.b);
+          if (Math.hypot(gx - p.x, gy - p.y) > 22 * fs) {
+            ctx.strokeStyle = C.tick; ctx.globalAlpha = 0.5; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(gx, gy); ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
           ctx.textAlign = "center";
-          if (level) {
-            ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(p.x, p.y - 12); ctx.lineTo(p.x, base + 4); ctx.stroke();
-          }
-          if (compact) {
-            ctx.font = "700 14px 'Barlow Condensed', sans-serif";
-            ctx.fillStyle = C.gold;
-            ctx.fillText(t.categoria || "🏆", p.x, base);
-          } else {
-            ctx.font = "700 17px 'Barlow Condensed', sans-serif";
-            ctx.fillStyle = C.gold;
-            ctx.fillText("🏆 " + (t.categoria || ""), p.x, base - 30);
-            ctx.font = "600 12px Inter, sans-serif";
-            ctx.fillStyle = colorOf(t.companiero);
-            ctx.fillText(shortName(t.companiero), p.x, base - 14);
-            ctx.font = "500 11px Inter, sans-serif";
-            ctx.fillStyle = C.tick;
-            ctx.fillText(fechaCorta(t.fecha), p.x, base);
-          }
+          lines.forEach(([f, txt, color, off]) => {
+            ctx.font = f; ctx.fillStyle = color;
+            ctx.fillText(txt, best.cx, best.ty + off);
+          });
           ctx.restore();
+        }
+
+        const step = 4 * fs;
+        // Títulos: arriba del punto → costados → subiendo de a poco
+        function* titleCandidates(p, w, h) {
+          const side = w / 2 + 14 * fs;
+          for (let ty = p.y - 14 * fs - h; ty >= area.top - 2; ty -= step) {
+            yield { cx: p.x, ty }; yield { cx: p.x - side, ty }; yield { cx: p.x + side, ty };
+          }
+        }
+        // Subcampeonatos: abajo → derecha → izquierda → arriba (y subiendo)
+        function* subCandidates(p, w, h) {
+          const side = w / 2 + 14 * fs;
+          yield { cx: p.x, ty: p.y + 12 * fs };
+          yield { cx: p.x + side, ty: p.y - h / 2 };
+          yield { cx: p.x - side, ty: p.y - h / 2 };
+          for (let ty = p.y - 12 * fs - h; ty >= area.top - 2; ty -= step) {
+            yield { cx: p.x, ty }; yield { cx: p.x - side, ty }; yield { cx: p.x + side, ty };
+          }
+        }
+
+        ch.getDatasetMeta(1).data.forEach((p, i) => {
+          const t = m.pts[i].t;
+          let lines;
+          if (compact) {
+            lines = [[`700 ${14 * fs}px 'Barlow Condensed', sans-serif`, t.categoria || "🏆", C.gold, 12 * fs]];
+            lines.h = 15 * fs;
+          } else {
+            lines = [
+              [`700 ${17 * fs}px 'Barlow Condensed', sans-serif`, "🏆 " + (t.categoria || ""), C.gold, 14 * fs],
+              [`600 ${12 * fs}px Inter, sans-serif`, shortName(t.companiero), colorOf(t.companiero), 30 * fs],
+              [`500 ${11 * fs}px Inter, sans-serif`, fechaCorta(t.fecha), C.tick, 44 * fs]
+            ];
+            lines.h = 48 * fs;
+          }
+          drawLabel(p, lines, (w, h) => titleCandidates(p, w, h));
+        });
+
+        ch.getDatasetMeta(2).data.forEach((p, i) => {
+          const t = m.subPts[i].t;
+          let lines;
+          if (compact) {
+            lines = [[`700 ${13 * fs}px 'Barlow Condensed', sans-serif`, t.categoria || "🥈", C.silverText, 11 * fs]];
+            lines.h = 14 * fs;
+          } else {
+            lines = [
+              [`700 ${15 * fs}px 'Barlow Condensed', sans-serif`, "🥈 " + (t.categoria || ""), C.silverText, 12 * fs],
+              [`600 ${11 * fs}px Inter, sans-serif`, shortName(t.companiero), colorOf(t.companiero), 26 * fs]
+            ];
+            lines.h = 30 * fs;
+          }
+          drawLabel(p, lines, (w, h) => subCandidates(p, w, h));
         });
       }
     };
 
-    charts["t-titulos"] = new Chart(canvas, {
+    const tickFont = { size: 12 * fs };
+    return {
       data: {
         datasets: [
-          { type: "line", label: "Títulos acumulados", data: step, stepped: "before",
-            borderColor: C.gold, borderWidth: 2, backgroundColor: C.goldFill, fill: true,
-            pointRadius: 0, pointHoverRadius: 0, order: 3 },
-          { type: "scatter", label: "Título", data: pts,
-            pointRadius: 9, pointHoverRadius: 11,
-            pointBackgroundColor: pts.map(p => colorOf(p.t.companiero)),
-            pointBorderColor: C.gold, pointBorderWidth: 3, order: 1 },
-          { type: "scatter", label: "Torneo sin título", data: otros,
-            pointRadius: 3.5, pointHoverRadius: 5,
-            pointBackgroundColor: C.other, pointBorderWidth: 0, order: 2 }
+          { type: "line", label: "Títulos acumulados", data: m.step, stepped: "before",
+            borderColor: C.gold, borderWidth: 2 * fs, backgroundColor: C.goldFill, fill: true,
+            pointRadius: 0, pointHoverRadius: 0, order: 4 },
+          { type: "scatter", label: "Título", data: m.pts,
+            pointRadius: 9 * fs, pointHoverRadius: 11 * fs,
+            pointBackgroundColor: m.pts.map(p => colorOf(p.t.companiero)),
+            pointBorderColor: C.gold, pointBorderWidth: 3 * fs, order: 1 },
+          { type: "scatter", label: "Subcampeonato", data: m.subPts,
+            pointRadius: 7 * fs, pointHoverRadius: 9 * fs,
+            pointBackgroundColor: m.subPts.map(p => colorOf(p.t.companiero)),
+            pointBorderColor: C.silver, pointBorderWidth: 3 * fs, order: 2 },
+          { type: "scatter", label: "Torneo sin podio", data: m.otros,
+            pointRadius: 3.5 * fs, pointHoverRadius: 5 * fs,
+            pointBackgroundColor: C.other, pointBorderWidth: 0, order: 3 }
         ]
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
-        layout: { padding: { top: 6, right: 12 } },
+        responsive: !opts.static, maintainAspectRatio: false,
+        animation: opts.static ? false : undefined,
+        devicePixelRatio: opts.dpr || undefined,
+        layout: { padding: { top: 6 * fs, right: 12 * fs } },
         interaction: { mode: "nearest", intersect: true },
         plugins: {
           legend: { display: false },
           tooltip: {
+            enabled: !opts.static,
             filter: i => i.datasetIndex !== 0,
             callbacks: {
               title: items => {
@@ -594,6 +690,7 @@
                 const t = c.raw.t;
                 if (!t) return "";
                 if (c.datasetIndex === 1) return `🏆 Campeón ${t.categoria || ""} con ${t.companiero || "—"} (título #${c.raw.y})`;
+                if (c.datasetIndex === 2) return `🥈 Subcampeón ${t.categoria || ""} con ${t.companiero || "—"}`;
                 const p = PUESTO_LABEL[t.puesto] || "Sin podio";
                 return `${p} · ${t.categoria || "—"} con ${t.companiero || "—"}`;
               }
@@ -602,23 +699,52 @@
         },
         scales: {
           x: {
-            type: "linear", min: x0, max: x1,
-            grid: { color: GRID }, ticks: {
-              color: TICK, autoSkip: false, maxRotation: 0,
+            type: "linear", min: m.x0, max: m.x1,
+            grid: { color: C.grid }, ticks: {
+              color: C.tick, autoSkip: false, maxRotation: 0, font: tickFont,
               callback: v => { const d = fromDay(v); return MES_CORTO[d.getUTCMonth()] + " " + String(d.getUTCFullYear()).slice(2); }
             },
-            afterBuildTicks: axis => { axis.ticks = monthTicks(axis.chart.width < 600 ? 5 : 12).map(value => ({ value })); }
+            afterBuildTicks: axis => { axis.ticks = monthTicks(axis.chart.width < 600 * fs ? 5 : 12).map(value => ({ value })); }
           },
           y: {
-            min: 0, max: acc + (acc ? 3 : 1),
-            grid: { color: GRID },
-            ticks: { color: TICK, stepSize: 1, precision: 0, callback: v => (v <= acc ? v : "") },
-            title: { display: true, text: "Títulos acumulados", color: TICK }
+            min: 0, max: m.acc + (m.acc ? 3 : 1.5),
+            grid: { color: C.grid },
+            ticks: { color: C.tick, stepSize: 1, precision: 0, font: tickFont, callback: v => (v <= m.acc ? v : "") },
+            title: { display: true, text: "Títulos acumulados", color: C.tick, font: tickFont }
           }
         }
       },
       plugins: [labelPlugin]
-    });
+    };
+  }
+
+  function titulosTimeline(data) {
+    const C = paletteOf();
+    const m = titulosModel(data);
+    const legend = el("t-titulos-legend");
+    if (legend) legend.innerHTML = legendHTML(m, C);
+    destroyChart("t-titulos");
+    const canvas = el("t-chart-titulos");
+    if (!canvas) return;
+    charts["t-titulos"] = new Chart(canvas, titulosConfig(m, C));
+  }
+
+  // Renderiza el gráfico en un canvas fuera de pantalla (tema oscuro, tamaño fijo)
+  // y devuelve el canvas listo para dibujar en la imagen de WhatsApp.
+  function renderTitulosOffscreen(m, w, h) {
+    const C = paletteOf("dark");
+    const host = document.createElement("div");
+    host.style.cssText = `position:fixed;left:-10000px;top:0;width:${w}px;height:${h}px;`;
+    const cv = document.createElement("canvas");
+    cv.width = w; cv.height = h;
+    cv.style.width = w + "px"; cv.style.height = h + "px";
+    host.appendChild(cv);
+    document.body.appendChild(host);
+    const chart = new Chart(cv, titulosConfig(m, C, { scale: 1.3, compact: false, static: true, dpr: 2 }));
+    return {
+      canvas: cv,
+      dispose: () => { chart.destroy(); host.remove(); }
+    };
   }
 
   function topCompanieros(data) {
@@ -889,5 +1015,125 @@
     }
 
     window.shareTorneosStats = shareTorneosStats;
+
+    // ---------- Compartir solo el gráfico "Títulos y subcampeonatos en el tiempo" ----------
+    function buildTitulosImage() {
+      const DPR = 2;
+      const W = 1080, H = 1080, PAD = 64;
+      const m = titulosModel(applyFilters());
+      const C = paletteOf("dark");
+
+      const cv = document.createElement("canvas");
+      cv.width = W * DPR; cv.height = H * DPR;
+      const ctx = cv.getContext("2d");
+      ctx.scale(DPR, DPR);
+
+      // fondo (mismo estilo que la imagen general de torneos)
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, "#0d1117"); g.addColorStop(1, "#0a0e14");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      const rg = ctx.createRadialGradient(150, -40, 0, 150, -40, 520);
+      rg.addColorStop(0, "rgba(251,191,36,0.18)"); rg.addColorStop(1, "rgba(251,191,36,0)");
+      ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+      ctx.textBaseline = "alphabetic";
+
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "600 22px Inter, sans-serif";
+      ctx.fillText("CIRCUITO DE TORNEOS", PAD, 96);
+      ctx.fillStyle = "#e6edf3";
+      ctx.font = "700 76px 'Barlow Condensed', Arial Narrow, sans-serif";
+      ctx.fillText("MIS TÍTULOS DE PÁDEL", PAD, 168);
+
+      // resumen: títulos y subcampeonatos
+      ctx.font = "700 34px 'Barlow Condensed', Arial Narrow, sans-serif";
+      let x = PAD;
+      const seg = (text, color) => { ctx.fillStyle = color; ctx.fillText(text, x, 214); x += ctx.measureText(text).width; };
+      seg(`🏆 ${m.nTitulos} título${m.nTitulos === 1 ? "" : "s"}`, "#fbbf24");
+      seg("   ·   ", "#8b949e");
+      seg(`🥈 ${m.nSubs} subcampeonato${m.nSubs === 1 ? "" : "s"}`, "#cbd5e1");
+
+      // filtros activos
+      const fl = shownFiltersTorneos();
+      let filterLine = fl.length ? fl.join("  ·  ") : "Todos los torneos";
+      ctx.fillStyle = "#9aa4b0";
+      ctx.font = "500 22px Inter, sans-serif";
+      const maxW = W - PAD * 2 - ctx.measureText("Filtros · ").width;
+      if (ctx.measureText(filterLine).width > maxW) {
+        while (ctx.measureText(filterLine + "…").width > maxW && filterLine.length) filterLine = filterLine.slice(0, -1);
+        filterLine += "…";
+      }
+      ctx.fillText("Filtros · " + filterLine, PAD, 254);
+
+      // leyenda de compañeros (con salto de línea)
+      ctx.font = "600 22px Inter, sans-serif";
+      let lx = PAD, ly = 302;
+      m.partners.forEach(p => {
+        const s = m.stats[p], parts = [];
+        if (s.camp) parts.push(`🏆 ${s.camp}`);
+        if (s.sub) parts.push(`🥈 ${s.sub}`);
+        ctx.font = "600 22px Inter, sans-serif";
+        const nameW = ctx.measureText(p).width;
+        ctx.font = "500 20px Inter, sans-serif";
+        const cntTxt = "  " + parts.join(" · ");
+        const itemW = 24 + nameW + ctx.measureText(cntTxt).width + 30;
+        if (lx + itemW > W - PAD && lx > PAD) { lx = PAD; ly += 36; }
+        ctx.fillStyle = partnerColor(m, C, p);
+        ctx.beginPath(); ctx.arc(lx + 8, ly - 7, 8, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#e6edf3"; ctx.font = "600 22px Inter, sans-serif";
+        ctx.fillText(p, lx + 24, ly);
+        ctx.fillStyle = "#8b949e"; ctx.font = "500 20px Inter, sans-serif";
+        ctx.fillText(cntTxt, lx + 24 + nameW, ly);
+        lx += itemW;
+      });
+
+      // panel con el gráfico
+      const panelTop = ly + 30, panelBottom = 1004;
+      roundRect(ctx, PAD, panelTop, W - PAD * 2, panelBottom - panelTop, 18);
+      ctx.fillStyle = "#161b22"; ctx.fill();
+      ctx.strokeStyle = "#2a313c"; ctx.lineWidth = 1; ctx.stroke();
+      const inset = 22;
+      const cw = W - PAD * 2 - inset * 2, chh = panelBottom - panelTop - inset * 2;
+      const off = renderTitulosOffscreen(m, cw, chh);
+      try { ctx.drawImage(off.canvas, PAD + inset, panelTop + inset, cw, chh); }
+      finally { off.dispose(); }
+
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "500 22px Inter, sans-serif";
+      ctx.fillText("Estadísticas de Pádel · Federico Olego", PAD, 1048);
+      return { canvas: cv, model: m };
+    }
+
+    async function shareTitulosChart() {
+      const btn = document.getElementById("t-titulos-share");
+      if (btn) btn.classList.add("busy");
+      try {
+        if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (_) {} }
+        const { canvas, model: m } = buildTitulosImage();
+        const blob = await canvasToBlob(canvas);
+        const file = new File([blob], "mis-titulos-padel.png", { type: "image/png" });
+        const text = `Mis títulos de pádel 🏆 ${m.nTitulos} título${m.nTitulos === 1 ? "" : "s"} · 🥈 ${m.nSubs} subcampeonato${m.nSubs === 1 ? "" : "s"}`;
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text });
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+        console.error(err);
+        alert("No se pudo generar la imagen para compartir.");
+      } finally {
+        if (btn) btn.classList.remove("busy");
+      }
+    }
+
+    window.shareTitulosChart = shareTitulosChart;
+    window.buildTitulosImage = buildTitulosImage; // útil para depurar desde la consola
+    const shareBtn = document.getElementById("t-titulos-share");
+    if (shareBtn) shareBtn.addEventListener("click", shareTitulosChart);
   })();
 })();

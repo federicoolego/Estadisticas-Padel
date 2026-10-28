@@ -15,11 +15,13 @@
     dark: {
       grid: "#2a313c", tick: "#8b949e", text: "#e6edf3",
       gold: "#fbbf24", goldFill: "rgba(251,191,36,0.08)", other: "#3a4352",
+      silver: "#cbd5e1", silverText: "#cbd5e1",
       partners: ["#60a5fa", "#f472b6", "#2dd4bf", "#a78bfa", "#fb923c", "#facc15", "#f87171", "#94a3b8"]
     },
     light: {
       grid: "#e3e8ee", tick: "#5d6878", text: "#1b2230",
       gold: "#d97706", goldFill: "rgba(217,119,6,0.08)", other: "#c3cbd6",
+      silver: "#94a3b8", silverText: "#64748b",
       partners: ["#2563eb", "#db2777", "#0d9488", "#7c3aed", "#ea580c", "#ca8a04", "#dc2626", "#475569"]
     }
   };
@@ -49,6 +51,7 @@
   window.THEME = {
     get: () => root.getAttribute("data-theme") || "dark",
     colors: () => PALETTES[root.getAttribute("data-theme") === "light" ? "light" : "dark"],
+    palette: name => PALETTES[name === "light" ? "light" : "dark"],
     set,
     toggle: () => set(window.THEME.get() === "dark" ? "light" : "dark")
   };

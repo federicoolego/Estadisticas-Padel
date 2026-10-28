@@ -35,6 +35,25 @@
 }
 .legend-partners b { color: var(--text); font-weight: 600; }
 .chart-box.timeline { height: 340px; }
+
+/* Botón "compartir este gráfico" en el encabezado de la card */
+.card-share {
+  margin-left: auto;
+  width: 32px; height: 32px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0;
+  background: rgba(37,211,102,0.12);
+  color: #25d366;
+  border: 1px solid rgba(37,211,102,0.35);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.card-share:hover { background: rgba(37,211,102,0.22); }
+.card-share:active { transform: scale(0.92); }
+.card-share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.card-share.busy { opacity: 0.55; pointer-events: none; }
+html[data-theme="light"] .card-share { color: #128c4a; background: rgba(37,211,102,0.1); }
 @media (max-width: 640px) { .chart-box.timeline { height: 300px; } }
 
 /* ================= TEMA CLARO ================= */

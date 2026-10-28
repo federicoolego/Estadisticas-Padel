@@ -44,7 +44,7 @@ Estadisticas-Padel/
 **Tab Torneos**
 
 - **KPIs**: torneos jugados, 🥇 campeón, 🥈 subcampeón, podios totales, % podios, finales jugadas, semifinales alcanzadas, instancia más frecuente.
-- **Gráficos**: títulos en el tiempo (línea escalonada de títulos acumulados con categoría, compañero y fecha de cada campeonato; color del punto = compañero); torneos y % podios por año, por organizador y por categoría; distribución de instancia máxima alcanzada; top 5 compañeros de torneo.
+- **Gráficos**: títulos y subcampeonatos en el tiempo (línea escalonada de títulos acumulados con categoría, compañero y fecha de cada campeonato; los subcampeonatos van como puntos plateados que no suman al escalón; color del punto = compañero; botón propio para compartir el gráfico por WhatsApp); torneos y % podios por año, por organizador y por categoría; distribución de instancia máxima alcanzada; top 5 compañeros de torneo.
 - **Filtros**: Año, Mes, Organizador, Categoría, Compañero, Puesto.
 - **Tabla** con el detalle completo de torneos.
 
