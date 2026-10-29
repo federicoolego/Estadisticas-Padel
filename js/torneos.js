@@ -456,7 +456,10 @@
   //    Arriba: 🏆 categoría / compañero / fecha.
   //  · Subcampeonato: punto con aro plateado sobre el escalón vigente; NO suma.
   //    Abajo: 🥈 categoría / compañero.
-  //  · Torneos sin podio: puntitos grises sobre la base, para dar contexto de frecuencia.
+  //  · Resto de los torneos: puntito gris sobre el escalón vigente (misma línea), para
+  //    dar contexto de frecuencia sin despegarse de la curva.
+  //  · Rango: "Todo" (colapsado) o un año expandido; el escalón arranca en los títulos
+  //    acumulados antes de ese año.
   // La misma configuración se usa en pantalla y para la imagen de WhatsApp.
   const MES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   const DAY_MS = 864e5;
@@ -477,35 +480,75 @@
     ? (name ? window.THEME.palette(name) : window.THEME.colors())
     : FALLBACK_PALETTE);
 
-  // Modelo de datos del gráfico (independiente de colores y tamaños)
-  function titulosModel(data) {
+  // Modelo de datos del gráfico (independiente de colores y tamaños).
+  // range: null = todo el historial; { from, to } en días = año expandido.
+  function titulosModel(data, range = null) {
     const conFecha = data.filter(t => t.fecha).sort((a, b) => a.fecha.localeCompare(b.fecha) || a.id - b.id);
-    const titulos = conFecha.filter(t => t.puesto === "campeon");
-    const subs = conFecha.filter(t => t.puesto === "subcampeon");
+    const titulosAll = conFecha.filter(t => t.puesto === "campeon");
+    const inRange = t => !range || (toDay(t.fecha) >= range.from && toDay(t.fecha) <= range.to);
+    // Escalón vigente a una fecha = títulos hasta ese día inclusive
+    const escalon = f => titulosAll.filter(c => c.fecha <= f).length;
 
-    // Compañeros ordenados por títulos, después por subcampeonatos → color estable dentro de la vista
-    const stats = {};
-    const bump = (t, k) => { const n = t.companiero || "—"; (stats[n] = stats[n] || { camp: 0, sub: 0 })[k]++; };
-    titulos.forEach(t => bump(t, "camp"));
-    subs.forEach(t => bump(t, "sub"));
-    const partners = Object.keys(stats).sort((a, b) =>
-      stats[b].camp - stats[a].camp || stats[b].sub - stats[a].sub || a.localeCompare(b, "es"));
+    const visibles = conFecha.filter(inRange);
+    const titulos = visibles.filter(t => t.puesto === "campeon");
+    const subs = visibles.filter(t => t.puesto === "subcampeon");
 
-    let acc = 0;
-    const pts = titulos.map(t => ({ x: toDay(t.fecha), y: ++acc, t }));
-    // Subcampeonato: se apoya en el escalón vigente a esa fecha (títulos hasta ese día inclusive)
-    const subPts = subs.map(t => ({ x: toDay(t.fecha), y: titulos.filter(c => c.fecha <= t.fecha).length, t }));
-    const otros = conFecha.filter(t => t.puesto !== "campeon" && t.puesto !== "subcampeon")
-      .map(t => ({ x: toDay(t.fecha), y: 0, t }));
+    // Compañeros ordenados por títulos, después por subcampeonatos. El orden (y por ende el color)
+    // sale de todo el historial filtrado, así no cambia al expandir un año; la leyenda muestra
+    // solo los que aparecen en el período visible, con sus números de ese período.
+    const tally = (ts, ss) => {
+      const st = {};
+      const bump = (t, k) => { const n = t.companiero || "—"; (st[n] = st[n] || { camp: 0, sub: 0 })[k]++; };
+      ts.forEach(t => bump(t, "camp"));
+      ss.forEach(t => bump(t, "sub"));
+      return st;
+    };
+    const statsAll = tally(titulosAll, conFecha.filter(t => t.puesto === "subcampeon"));
+    const stats = tally(titulos, subs);
+    const partners = Object.keys(statsAll).sort((a, b) =>
+      statsAll[b].camp - statsAll[a].camp || statsAll[b].sub - statsAll[a].sub || a.localeCompare(b, "es"));
+    const legend = partners.filter(p => stats[p]);
 
-    const first = conFecha.length ? toDay(conFecha[0].fecha) : toDay(new Date().toISOString().slice(0, 10));
-    const last = conFecha.length ? toDay(conFecha[conFecha.length - 1].fecha) : first;
-    const span = Math.max(last - first, 60);
-    const x0 = first - Math.max(10, span * 0.03);
-    const x1 = last + Math.max(20, span * 0.06);
-    const step = [{ x: x0, y: 0 }, ...pts, { x: x1, y: acc }];
+    const base = range ? titulosAll.filter(c => toDay(c.fecha) < range.from).length : 0;
+    // Títulos con mismo día: escalones consecutivos (no todos en el mismo valor)
+    const pts = titulos.map((t, i) => ({ x: toDay(t.fecha), y: base + i + 1, t }));
+    const subPts = subs.map(t => ({ x: toDay(t.fecha), y: escalon(t.fecha), t }));
+    // Resto de los torneos: sobre la misma línea escalonada
+    const otros = visibles.filter(t => t.puesto !== "campeon" && t.puesto !== "subcampeon")
+      .map(t => ({ x: toDay(t.fecha), y: escalon(t.fecha), t }));
+    const acc = base + titulos.length;
 
-    return { pts, subPts, otros, step, acc, x0, x1, partners, stats, nTitulos: titulos.length, nSubs: subs.length };
+    let x0, x1;
+    if (range) {
+      x0 = range.from - 6; x1 = range.to + 6;
+    } else {
+      const first = conFecha.length ? toDay(conFecha[0].fecha) : toDay(new Date().toISOString().slice(0, 10));
+      const last = conFecha.length ? toDay(conFecha[conFecha.length - 1].fecha) : first;
+      const span = Math.max(last - first, 60);
+      x0 = first - Math.max(10, span * 0.03);
+      x1 = last + Math.max(20, span * 0.06);
+    }
+    const step = [{ x: x0, y: base }, ...pts, { x: x1, y: acc }];
+
+    return { pts, subPts, otros, step, acc, base, x0, x1, partners, legend, stats, nTitulos: titulos.length, nSubs: subs.length };
+  }
+
+  // ---- Expandir / colapsar por año ----
+  let titulosYear = null; // null = Todo (colapsado)
+  const yearRange = y => (y ? { from: toDay(y + "-01-01"), to: toDay(y + "-12-31") } : null);
+
+  function renderTitulosRange(data) {
+    const box = el("t-titulos-range");
+    if (!box) return;
+    const years = [...new Set(data.filter(t => t.fecha).map(t => t.fecha.slice(0, 4)))].sort();
+    if (titulosYear && !years.includes(titulosYear)) titulosYear = null; // el filtro dejó afuera el año
+    if (years.length < 2) { box.innerHTML = ""; titulosYear = null; return; }
+    const btn = (val, label) => {
+      const on = (val || null) === titulosYear;
+      return `<button type="button" data-year="${val}" class="${on ? "on" : ""}" aria-pressed="${on}">${label}</button>`;
+    };
+    box.innerHTML = btn("", "Todo") +
+      years.map(y => btn(y, (y === titulosYear ? "▾ " : "▸ ") + y)).join("");
   }
 
   function partnerColor(m, C, name) {
@@ -513,7 +556,7 @@
   }
 
   function legendHTML(m, C) {
-    return m.partners.map(p => {
+    return m.legend.map(p => {
       const s = m.stats[p], parts = [];
       if (s.camp) parts.push(`🏆 ${s.camp}`);
       if (s.sub) parts.push(`🥈 ${s.sub}`);
@@ -551,7 +594,7 @@
           ctx.save();
           ctx.textAlign = "center"; ctx.fillStyle = C.tick;
           ctx.font = `500 ${13 * fs}px Inter, sans-serif`;
-          ctx.fillText("Sin títulos ni subcampeonatos con estos filtros", (area.left + area.right) / 2, (area.top + area.bottom) / 2);
+          ctx.fillText(titulosYear ? "Sin títulos ni subcampeonatos en " + titulosYear : "Sin títulos ni subcampeonatos con estos filtros", (area.left + area.right) / 2, (area.top + area.bottom) / 2);
           ctx.restore();
           return;
         }
@@ -561,8 +604,8 @@
         // que no pisa otra etiqueta ni otro punto. Si se aleja, lleva una línea guía.
         const placed = [];
         const hit = (r, q) => r.l < q.r && r.r > q.l && r.t < q.b && r.b > q.t;
-        const pointBoxes = [1, 2].flatMap(di => ch.getDatasetMeta(di).data.map(p => {
-          const rr = (di === 1 ? 12 : 10) * fs;
+        const pointBoxes = [1, 2, 3].flatMap(di => ch.getDatasetMeta(di).data.map(p => {
+          const rr = (di === 1 ? 12 : di === 2 ? 10 : 5) * fs;
           return { l: p.x - rr, r: p.x + rr, t: p.y - rr, b: p.y + rr, x: p.x, y: p.y };
         }));
         const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -667,7 +710,7 @@
             pointBorderColor: C.silver, pointBorderWidth: 3 * fs, order: 2 },
           { type: "scatter", label: "Otros torneos", data: m.otros,
             pointRadius: 3.5 * fs, pointHoverRadius: 5 * fs,
-            pointBackgroundColor: C.other, pointBorderWidth: 0, order: 3 }
+            pointBackgroundColor: C.tick, pointBorderWidth: 0, order: 3 }
         ]
       },
       options: {
@@ -710,7 +753,7 @@
             afterBuildTicks: axis => { axis.ticks = monthTicks(axis.chart.width < 600 * fs ? 5 : 12).map(value => ({ value })); }
           },
           y: {
-            min: 0, max: m.acc + (m.acc ? 3 : 1.5),
+            min: m.base, max: m.acc + (m.acc - m.base ? 3 : 1.5),
             grid: { color: C.grid },
             ticks: { color: C.tick, stepSize: 1, precision: 0, font: tickFont, callback: v => (v <= m.acc ? v : "") },
             title: { display: true, text: "Títulos acumulados", color: C.tick, font: tickFont }
@@ -723,7 +766,8 @@
 
   function titulosTimeline(data) {
     const C = paletteOf();
-    const m = titulosModel(data);
+    renderTitulosRange(data);
+    const m = titulosModel(data, yearRange(titulosYear));
     const legend = el("t-titulos-legend");
     if (legend) legend.innerHTML = legendHTML(m, C);
     destroyChart("t-titulos");
@@ -1023,7 +1067,7 @@
     function buildTitulosImage() {
       const DPR = 2;
       const W = 1080, H = 1080, PAD = 64;
-      const m = titulosModel(applyFilters());
+      const m = titulosModel(applyFilters(), yearRange(titulosYear));
       const C = paletteOf("dark");
 
       const cv = document.createElement("canvas");
@@ -1056,7 +1100,7 @@
       seg(`🥈 ${m.nSubs} subcampeonato${m.nSubs === 1 ? "" : "s"}`, "#cbd5e1");
 
       // filtros activos
-      const fl = shownFiltersTorneos();
+      const fl = shownFiltersTorneos().concat(titulosYear ? ["Año " + titulosYear] : []);
       let filterLine = fl.length ? fl.join("  ·  ") : "Todos los torneos";
       ctx.fillStyle = "#9aa4b0";
       ctx.font = "500 22px Inter, sans-serif";
@@ -1070,7 +1114,7 @@
       // leyenda de compañeros (con salto de línea)
       ctx.font = "600 22px Inter, sans-serif";
       let lx = PAD, ly = 302;
-      m.partners.forEach(p => {
+      m.legend.forEach(p => {
         const s = m.stats[p], parts = [];
         if (s.camp) parts.push(`🏆 ${s.camp}`);
         if (s.sub) parts.push(`🥈 ${s.sub}`);
@@ -1136,6 +1180,14 @@
 
     window.shareTitulosChart = shareTitulosChart;
     window.buildTitulosImage = buildTitulosImage; // útil para depurar desde la consola
+    const rangeBox = document.getElementById("t-titulos-range");
+    if (rangeBox) rangeBox.addEventListener("click", e => {
+      const b = e.target.closest("button[data-year]");
+      if (!b) return;
+      const y = b.dataset.year || null;
+      titulosYear = (y === titulosYear) ? null : y; // clic en el año abierto → colapsa a Todo
+      titulosTimeline(applyFilters());
+    });
     const shareBtn = document.getElementById("t-titulos-share");
     if (shareBtn) shareBtn.addEventListener("click", shareTitulosChart);
   })();
