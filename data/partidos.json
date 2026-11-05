@@ -3454,5 +3454,65 @@
     "rivales": "Fausto Roma - Ivan Vittori",
     "resultado": "PG",
     "dia": "Domingo"
+  },
+  {
+    "id": 289,
+    "fecha": "2026-10-27",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Ivan Roibas - Nahuel Martin",
+    "resultado": "PP",
+    "dia": "Martes"
+  },
+  {
+    "id": 290,
+    "fecha": "2026-10-30",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Florencia Caletrio",
+    "rivales": "Lautaro Guzman - Lucia Florenzano",
+    "resultado": "PG",
+    "dia": "Viernes"
+  },
+  {
+    "id": 291,
+    "fecha": "2026-10-30",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Florencia Caletrio",
+    "rivales": "Jonathan Carro - Leilen Fleita",
+    "resultado": "PG",
+    "dia": "Viernes"
+  },
+  {
+    "id": 292,
+    "fecha": "2026-10-31",
+    "mes": 10,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Florencia Caletrio",
+    "rivales": "Lautaro Guzman - Lucia Florenzano",
+    "resultado": "PP",
+    "dia": "Sábado"
+  },
+  {
+    "id": 293,
+    "fecha": "2026-11-03",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Gaston Berthet - Nicolas Lima",
+    "resultado": "PG",
+    "dia": "Martes"
   }
 ]
