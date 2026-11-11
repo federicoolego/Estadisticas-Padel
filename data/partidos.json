@@ -127,7 +127,7 @@
     "cancha": "NODO",
     "formato": "TURNO",
     "companiero": "Lucho Vitali",
-    "rivales": "Benja Lafuente - Lauri Lafuente",
+    "rivales": "Benja Ricci - Lauri Lafuente",
     "resultado": "PP",
     "dia": "Jueves"
   },
@@ -3513,6 +3513,90 @@
     "companiero": "German Villalba",
     "rivales": "Gaston Berthet - Nicolas Lima",
     "resultado": "PG",
+    "dia": "Martes"
+  },
+  {
+    "id": 294,
+    "fecha": "2026-11-05",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TURNO",
+    "companiero": "Grego Massot",
+    "rivales": "Alan Ruiz - Rodrigo Sunsundegui",
+    "resultado": "PG",
+    "dia": "Jueves"
+  },
+  {
+    "id": 295,
+    "fecha": "2026-11-07",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Grego Massot",
+    "rivales": "Gallo Capridi - Juani Capridi",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 296,
+    "fecha": "2026-11-07",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Grego Massot",
+    "rivales": "Facundo Andenmaten - Nicolas Gomez",
+    "resultado": "PG",
+    "dia": "Sábado"
+  },
+  {
+    "id": 297,
+    "fecha": "2026-11-08",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Grego Massot",
+    "rivales": "Enzo Gauna - Grego Mayer",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 298,
+    "fecha": "2026-11-08",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "Grego Massot",
+    "rivales": "Maxi Musante - Mauricio Damico",
+    "resultado": "PP",
+    "dia": "Domingo"
+  },
+  {
+    "id": 299,
+    "fecha": "2026-11-08",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TURNO MIXTO",
+    "companiero": "Florencia Caletrio",
+    "rivales": "Belen Pacchioni - Rodrigo Sunsundegui",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 300,
+    "fecha": "2026-11-10",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Gaston Berthet - Nicolas Lima",
+    "resultado": "PP",
     "dia": "Martes"
   }
 ]

@@ -302,5 +302,21 @@
     "semifinal": null,
     "final": null,
     "puesto": null
+  },
+  {
+    "id": 20,
+    "fecha": "2026-11-07",
+    "mes": 11,
+    "anio": 2026,
+    "dia": "Sábado",
+    "organizador": "NODO",
+    "companiero": "Grego Massot",
+    "categoria": "+10",
+    "zona": true,
+    "octavos": null,
+    "cuartos": true,
+    "semifinal": false,
+    "final": null,
+    "puesto": null
   }
 ]
