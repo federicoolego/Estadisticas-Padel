@@ -318,5 +318,37 @@
     "semifinal": false,
     "final": null,
     "puesto": null
+  },
+  {
+    "id": 21,
+    "fecha": "2026-11-13",
+    "mes": 11,
+    "anio": 2026,
+    "dia": "Viernes",
+    "organizador": "CIRCUITO PM",
+    "companiero": "German Villalba",
+    "categoria": "6ta",
+    "zona": true,
+    "octavos": null,
+    "cuartos": false,
+    "semifinal": null,
+    "final": null,
+    "puesto": null
+  },
+  {
+    "id": 22,
+    "fecha": "2026-11-22",
+    "mes": 11,
+    "anio": 2026,
+    "dia": "Domingo",
+    "organizador": "NODO",
+    "companiero": "German Villalba",
+    "categoria": "+12",
+    "zona": true,
+    "octavos": false,
+    "cuartos": null,
+    "semifinal": null,
+    "final": null,
+    "puesto": null
   }
 ]

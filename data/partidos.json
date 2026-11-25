@@ -3598,5 +3598,113 @@
     "rivales": "Gaston Berthet - Nicolas Lima",
     "resultado": "PP",
     "dia": "Martes"
+  },
+  {
+    "id": 301,
+    "fecha": "2026-11-12",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Chalo Mendoza - Damian Zanandrea",
+    "resultado": "PP",
+    "dia": "Jueves"
+  },
+  {
+    "id": 302,
+    "fecha": "2026-11-13",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Bruno Strappa - Yamil Carro",
+    "resultado": "PG",
+    "dia": "Viernes"
+  },
+  {
+    "id": 303,
+    "fecha": "2026-11-13",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Beto Quaglini - Sergio Gutierrez",
+    "resultado": "PG",
+    "dia": "Viernes"
+  },
+  {
+    "id": 304,
+    "fecha": "2026-11-15",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Maxi Teseyra - Nicolas Viscarra",
+    "resultado": "PP",
+    "dia": "Domingo"
+  },
+  {
+    "id": 305,
+    "fecha": "2026-11-17",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "EL CLASICO",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Gaston Berthet - Kaku Pascuali",
+    "resultado": "PG",
+    "dia": "Martes"
+  },
+  {
+    "id": 306,
+    "fecha": "2026-11-19",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "EL CLASICO 2",
+    "formato": "TURNO",
+    "companiero": "German Villalba",
+    "rivales": "Chalo Mendoza - Martin Mazza",
+    "resultado": "PP",
+    "dia": "Jueves"
+  },
+  {
+    "id": 307,
+    "fecha": "2026-11-22",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Fadel - Maxi Dangelo",
+    "resultado": "PG",
+    "dia": "Domingo"
+  },
+  {
+    "id": 308,
+    "fecha": "2026-11-22",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Maria Leguizamon - Ricky Caletrio",
+    "resultado": "PP",
+    "dia": "Domingo"
+  },
+  {
+    "id": 309,
+    "fecha": "2026-11-22",
+    "mes": 11,
+    "anio": 2026,
+    "cancha": "NODO",
+    "formato": "TORNEO",
+    "companiero": "German Villalba",
+    "rivales": "Bautista Gonzalez - Jeronimo Dorado",
+    "resultado": "PP",
+    "dia": "Domingo"
   }
 ]
